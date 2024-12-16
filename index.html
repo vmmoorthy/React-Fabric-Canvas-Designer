@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fabric </title>
+    <script src="https://cdn.jsdelivr.net/npm/fabric@latest/dist/index.min.js"></script>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+
+    <script>
+        // Initialize the canvas
+        const canvas = new fabric.Canvas('myCanvas');
+
+        // Create a rectangle
+        const rect = new fabric.Rect({
+            left: 50,  // x-position
+            top: 0,    // y-position (start at 0px)
+            fill: 'blue',
+            width: 100,
+            height: 100
+        });
+
+        // Add the rectangle to the canvas
+        canvas.add(rect);
+
+        // Animate the rectangle's y-position (top property) from 0 to 100 over 10 seconds
+        const res = rect.animate({ top: 100 },
+            {
+                duration: 1000,
+                onChange: () => canvas.requestRenderAll(),
+                onComplete: function () {
+                    // animateBtn.disabled = false;
+                    console.log("completed");
+
+                },
+                easing: fabric.util.ease.easeInQuad,
+            });
+        console.log(res);
+
+    </script>
+</body>
+
+</html>
