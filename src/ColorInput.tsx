@@ -1,22 +1,31 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FunctionComponent } from 'react';
 // import { ChevronDown } from 'lucide-react';
 
-const ColorDropdown = ({ onChange, currentColor, defaultColor = '#ff0000ff' }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [color, setColor] = useState(defaultColor.slice(0, 7));
-    const [alpha, setAlpha] = useState(parseInt(defaultColor.slice(7), 16));
-    const dropdownRef = useRef(null);
+interface ColorDropdownProps {
+    onChange: (color: string) => void
+    currentColor: string
+}
 
-    useEffect(() => {
-        if (currentColor) {
-            setColor(defaultColor.slice(0, 7))
-            setAlpha(parseInt(defaultColor.slice(7), 16))
-        }
-    }, [currentColor])
+const ColorDropdown: FunctionComponent<ColorDropdownProps> = ({ onChange, currentColor }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const color = currentColor.slice(0, 7);
+    const alpha = parseInt(currentColor.slice(7), 16)||255;
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    // const isChangeByCurrentPropChange = useRef()
+
+    // useEffect(() => {
+    //     console.log("currentColor", currentColor);
+
+    //     if (currentColor) {
+    //         isChangeByCurrentPropChange.current = true;
+    //         setColor(currentColor.slice(0, 7))
+    //         setAlpha(parseInt(currentColor.slice(7), 16))
+    //     }
+    // }, [currentColor])
     // Handle clicking outside to close dropdown
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         };
@@ -26,18 +35,20 @@ const ColorDropdown = ({ onChange, currentColor, defaultColor = '#ff0000ff' }) =
     }, []);
 
     // Update parent component with color changes
-    useEffect(() => {
-        const alphaHex = Math.round(alpha).toString(16).padStart(2, '0');
-        const fullColor = `${color}${alphaHex}`;
-        if (onChange)
-            onChange(fullColor);
-    }, [color, alpha, onChange]);
+    // useEffect(() => {
+    //     const alphaHex = Math.round(alpha).toString(16).padStart(2, '0');
+    //     const fullColor = `${color}${ Math.round(alpha).toString(16).padStart(2, '0')}`;
+    //     if (fullColor != defaultColor)
+    //         if (onChange && !isChangeByCurrentPropChange.current)
+    //             onChange(fullColor);
+    //     isChangeByCurrentPropChange.current = false
+    // }, [color, alpha, onChange]);
 
     return (
         <div className="relative inline-block" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 min-w-[8rem] px-3 py-2 border rounded-lg shadow-sm hover:bg-gray-50"
+                className="flex items-center gap-2 min-w-[10rem] px-3 py-2 border rounded-lg shadow-sm hover:bg-gray-50"
             >
                 <div className="flex items-center gap-2">
                     <div
@@ -49,7 +60,7 @@ const ColorDropdown = ({ onChange, currentColor, defaultColor = '#ff0000ff' }) =
                             backgroundPosition: '0 0, 0 5px, 5px -5px, -5px 0px'
                         }}
                     />
-                    <span className="text-sm">
+                    <span className="text-sm min-w-[5rem]">
                         {`${color}${Math.round(alpha).toString(16).padStart(2, '0')}`}
                     </span>
                 </div>
@@ -64,13 +75,13 @@ const ColorDropdown = ({ onChange, currentColor, defaultColor = '#ff0000ff' }) =
                             <input
                                 type="color"
                                 value={color}
-                                onChange={(e) => setColor(e.target.value)}
+                                onChange={(e) => onChange(`${e.target.value}${Math.round(alpha).toString(16).padStart(2, '0')}`)}
                                 className="w-12 h-8 p-0 border rounded cursor-pointer"
                             />
                             <input
                                 type="text"
                                 value={color}
-                                onChange={(e) => setColor(e.target.value)}
+                                onChange={(e) => onChange(`${e.target.value}${Math.round(alpha).toString(16).padStart(2, '0')}`)}
                                 className="flex-1 px-2 border rounded text-sm"
                             />
                         </div>
@@ -86,7 +97,7 @@ const ColorDropdown = ({ onChange, currentColor, defaultColor = '#ff0000ff' }) =
                             defaultValue={255}
                             max="255"
                             value={alpha}
-                            onChange={(e) => setAlpha(parseInt(e.target.value))}
+                            onChange={(e) => onChange(`${color}${Math.round(parseInt(e.target.value)).toString(16).padStart(2, '0')}`)}
                             className="w-full"
                         />
                     </div>

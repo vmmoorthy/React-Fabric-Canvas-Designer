@@ -1,35 +1,55 @@
-import { forwardRef, useEffect, useRef, useState } from 'react';
-import { Canvas, Rect, FabricImage, IText, Textbox, Ellipse } from 'fabric';
+import { forwardRef, FunctionComponent, RefObject, useEffect, useRef, useState } from 'react';
+import { Canvas, Rect, FabricImage, Textbox, Ellipse } from 'fabric';
 import * as fabric from 'fabric'
-import ColorDropdown from './ColorInput.jsx';
+// import ColorDropdown from './ColorInput.jsx/index.js';
 // import qr from './qr.webp'
 import { QRCodeCanvas } from 'qrcode.react'
+import Properties from './Properties.js';
 
 
+let altKeyFired = false;
+interface CanvasComponentProps {
+    initialValue: string
+    templateRef: RefObject<HTMLInputElement>
+    commmunicate: RefObject<{ retrive: Function }>
+    parentCanvasRef: RefObject<Canvas | undefined>
+    listEmbeddings: {
+        title: string;
+        value: string;
+    }[]
+}
 
-const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvasRef, listEmbeddings = [] }) => {
-    const [canvas, setCanvas] = useState();
-    const canvasEl = useRef();
-    const [history, setHistory] = useState([]);
+type toolType = "select" | "img" | "rect" | "elipse" | "text"
+type objPositionType = "left" | "right" | "top" | "bottom" | "horizontally" | "vertically"
+type objMoveType = 1 | 2 | -1 | -2
+
+const CanvasComponent: FunctionComponent<CanvasComponentProps> = ({ initialValue, templateRef, commmunicate, parentCanvasRef, listEmbeddings = [] }) => {
+    const [canvas, setCanvas] = useState<Canvas>(() => new Canvas());
+    const canvasEl = useRef<HTMLCanvasElement>(null);
+    const [history, setHistory] = useState<string[]>([]);
     const [currentStateIndex, setCurrentStateIndex] = useState(-1);
     const MAX_HISTORY = 50;
     const paintInfoRef = useRef({ isDrawing: false, drawColor: "black", backgroundColor: "white", isLoadingJson: false })
     const toolRef = useRef("select")
     const [initialData] = useState(initialValue)
-    const selectedObjs = useRef([])
+    // const selectedObjs = useRef([])
+    const cloneObjRef = useRef<fabric.FabricObject<Partial<fabric.FabricObjectProps>, fabric.SerializedObjectProps, fabric.ObjectEvents>[]>([])
+    const clonedObjsRef = useRef<Set<fabric.FabricObject<Partial<fabric.FabricObjectProps>, fabric.SerializedObjectProps, fabric.ObjectEvents>>>(new Set([]))
     const [{ canvasWidth, canvasHeight, canvasBackgroundColor }, setCanvasProperties] = useState({ canvasWidth: 1056, canvasHeight: 816, canvasBackgroundColor: "white" });
-    const [propVisibilityList, setPropVisibilityList] = useState([]);
-    const [toolProperties, setToolProperties] = useState({ fontSize: 16, borderWidth: 0, fontFamily: "Arial", fontWeight: "bold", fontStyle: "normal", underline: false, stroke: "#0000", alignment: "left", fill: "#000000ff", backgroundColor: "#ffffffff", textAlign: "left" });
-    const [tool, sTool] = useState("select");
-    console.log(propVisibilityList);
+    // const [propVisibilityList, setPropVisibilityList] = useState([]);
+    // const [objProperty, setObjProperty] = useState({})
+    const toolProperties = useRef({ fontSize: 16, borderWidth: 0, fontFamily: "Arial", fontWeight: "bold", fontStyle: "normal", underline: false, stroke: "#0000", alignment: "left", fill: "#000000ff", backgroundColor: "#ffffffff", textAlign: "left", textBackgroundColor: "#ffffffff" }).current;
+    // const [toolProperties, setToolProperties] = useRef({ fontSize: 16, borderWidth: 0, fontFamily: "Arial", fontWeight: "bold", fontStyle: "normal", underline: false, stroke: "#0000", alignment: "left", fill: "#000000ff", backgroundColor: "#ffffffff", textAlign: "left" });
+    const [tool, sTool] = useState<toolType>("select");
+    // console.log(propVisibilityList);
 
     // const fabricCanvasRef = useRef();
-    const setTool = (tool) => {
+    const setTool = (tool: toolType) => {
         toolRef.current = tool
         sTool(tool)
     }
     useEffect(() => {
-        if (!canvas) return
+        // if (!canvas) return
         const activeObj = canvas.getActiveObject()
         if (!activeObj) return;
         // activeObj.fontSize = toolProperties.fontSize
@@ -46,25 +66,28 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
 
     }, [toolProperties])
     useEffect(() => {
-        if (!canvas) return;
+        // if (!canvas) return;
         parentCanvasRef.current = canvas
         retrive(initialData)
         if (commmunicate.current)
             commmunicate.current.retrive = retrive
     }, [parentCanvasRef, canvas])
     useEffect(() => {
-        if (!canvas) return;
+        // if (!canvas) return;
         // Initialize Fabric.js canvas
 
         console.log(canvas);
 
 
-        let obj, origX, origY;
+        let obj, origX: number, origY: number;
 
 
         // Handle mouse click to create rectangle
         canvas.on('mouse:down', (options) => {
-            if (toolRef.current === "select") return;
+            if (toolRef.current === "select") {
+                cloneObjRef.current = canvas.getActiveObjects()
+                return
+            };
 
             paintInfoRef.current.isDrawing = true
             if (options.e) {
@@ -83,8 +106,8 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                         height: 0,
                         selectable: true,
 
-                        originX: "center",
-                        originY: "center",
+                        originX: "left",
+                        originY: "top",
                         // strokeWidth: 1,
 
                     });
@@ -136,12 +159,33 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
 
         });
 
+        // canvas.on("key")
+
         canvas.on('mouse:move', (options) => {
+
+            // console.log(options.e.altKey, options.e.repeat)
+            if (options.e.altKey) {
+                if (!altKeyFired)
+                    cloneObjRef.current.forEach(async ele => {
+                        const clonedEle = await ele.clone();
+                        console.log(clonedEle);
+
+                        const clonedObjsSize = clonedObjsRef.current.size;
+                        clonedObjsRef.current.add(clonedEle)
+                        if (clonedObjsSize !== clonedObjsRef.current.size)
+                            canvas.add(clonedEle)
+                    })
+                altKeyFired = true
+            } else {
+                // Remove the draw element
+                altKeyFired = false
+                clonedObjsRef.current.clear()
+
+            }
             if (!paintInfoRef.current.isDrawing) return;
             // console.log(options);
             const pointer = canvas.getPointer(options.e);
             let x = pointer.x, y = pointer.y;
-
 
             if (x > canvasWidth || y > canvasHeight || x < 0 || y < 0) return
 
@@ -170,11 +214,12 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
             }
         });
 
-        canvas.on('mouse:up', (options) => {
+        canvas.on('mouse:up', (_) => {
             paintInfoRef.current.isDrawing = false
             if (toolRef.current == "text") {
                 const activeObject = canvas.getActiveObject();
-                activeObject.enterEditing()
+                if (activeObject)
+                    (activeObject as Textbox).enterEditing()
             }
 
 
@@ -200,57 +245,58 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                 canvas.renderAll();
             }
         })
-        canvas?.on("selection:cleared", () => {
-            selectedObjs.current = []
-            console.log(selectedObjs.current);
-            setPropertyList()
-        })
-        canvas?.on("selection:created", e => {
-            console.log()
-            selectedObjs.current = e.selected
-            console.log(selectedObjs.current);
-            setPropertyList()
-        })
+        // canvas?.on("selection:cleared", () => {
+        //     selectedObjs.current = []
+        //     console.log(selectedObjs.current);
+        //     // setPropertyList()
+        // })
+        // canvas?.on("selection:created", e => {
+        //     console.log()
+        //     selectedObjs.current = e.selected
+        //     console.log(selectedObjs.current);
+        //     // setPropertyList()
+        // })
 
-        canvas?.on("selection:updated", (e) => {
-            console.log(e)
-            selectedObjs.current = selectedObjs.current.filter(obj => {
-                return e.deselected.findIndex((deselObj) => deselObj == obj) == -1
-            })
-            selectedObjs.current.push(...e.selected)
-            // e.selected
-            console.log(selectedObjs.current);
+        // canvas?.on("selection:updated", (e) => {
+        //     console.log(e)
+        //     selectedObjs.current = selectedObjs.current.filter(obj => {
+        //         return e.deselected.findIndex((deselObj) => deselObj == obj) == -1
+        //     })
+        //     selectedObjs.current.push(...e.selected)
+        //     // e.selected
+        //     console.log(selectedObjs.current);
 
-            setPropertyList()
-            // canvas.requestRenderAll()
-        })
+        //     // setPropertyList()
+        //     // canvas.requestRenderAll()
+        // })
 
 
         // Handle keyboard events for deletion
-        const handleWheel = (event) => {
-            console.log(event);
+        // const handleWheel = (event) => {
+        //     console.log(event);
 
-            event.e.preventDefault();
-            const delta = event.e.deltaY;
-            let zoom = canvas.getZoom();
+        //     event.e.preventDefault();
+        //     const delta = event.e.deltaY;
+        //     let zoom = canvas.getZoom();
 
-            // Calculate new zoom level
-            zoom *= 0.999 ** delta;
+        //     // Calculate new zoom level
+        //     zoom *= 0.999 ** delta;
 
-            // Limit zoom level
-            if (zoom > 20) zoom = 20;
-            if (zoom < 0.01) zoom = 0.01;
+        //     // Limit zoom level
+        //     if (zoom > 20) zoom = 20;
+        //     if (zoom < 0.01) zoom = 0.01;
 
-            // Get mouse position relative to canvas
-            const pointer = canvas.getPointer(event.e);
-            const point = new fabric.Point(pointer.x, pointer.y);
+        //     // Get mouse position relative to canvas
+        //     const pointer = canvas.getPointer(event.e);
+        //     const point = new fabric.Point(pointer.x, pointer.y);
 
-            // Set zoom with point as origin
-            canvas.zoomToPoint(point, zoom);
-        };
+        //     // Set zoom with point as origin
+        //     canvas.zoomToPoint(point, zoom);
+        // };
 
 
         window.addEventListener('paste', handlePaste);
+        // window.addEventListener('keyup', handleKeyUp);
         window.addEventListener('keydown', handleKeyDown);
         // if (canvas)
         //     canvas.on("after:render", () => {
@@ -259,6 +305,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
         //     canvas.on('mouse:wheel', handleWheel);
         // canvas.renderAll.bind(canvas)
         return () => {
+            // window.removeEventListener('keyup', handleKeyUp);
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('paste', handlePaste);
             // if (canvasEl.current)
@@ -274,10 +321,16 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
         };
     }, [canvas]);
 
+    // const handleKeyUp = (e) => {
 
-    const handlePaste = function (e) {
+    //     if (e.key == "Alt")
+
+    // }
+
+    const handlePaste = function (e: ClipboardEvent) {
         console.log(e);
 
+        if (!e.clipboardData) return;
         var items = e.clipboardData.items;
         console.log(items);
 
@@ -285,7 +338,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
             console.log(items[i]);
 
             if (items[i].type === 'image/svg+xml') {
-                items[i].getAsString(function (svgString) {
+                items[i].getAsString(function (svgString: string) {
                     // Parse SVG content
                     var parser = new DOMParser();
                     var svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
@@ -318,20 +371,22 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                 var reader = new FileReader();
                 reader.onload = function (event) {
                     var imgObj = new Image();
-                    imgObj.src = event.target.result;
+                    imgObj.src = (event.target?.result || "") as string;
                     console.log(imgObj);
 
                     imgObj.onload = function () {
                         loadImgToCanvas(imgObj)
                     }
                 };
-                reader.readAsDataURL(blob);
+                reader.readAsDataURL(blob as Blob);
             }
         }
     }
 
     // Keep your existing loadImgToCanvas function
-    const loadImgToCanvas = (imgElement, e = null) => {
+    const loadImgToCanvas = (imgElement: HTMLImageElement, e?: React.ChangeEvent<HTMLInputElement>) => {
+        // if (!canvas) return;
+
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         let imgWidth = imgElement.naturalWidth;
@@ -362,8 +417,9 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
     useEffect(() => {
         // if (canvas) return;
         console.log(canvasEl.current);
-        const initcanvas = { obj: null }
+        const initcanvas: { obj: null | Canvas } = { obj: null }
         const handler = () => {
+            if (!initcanvas.obj) return;;
             console.log("handler", paintInfoRef.current.isLoadingJson, initcanvas.obj);
 
             if (!paintInfoRef.current.isLoadingJson)
@@ -389,20 +445,20 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
         //     initcanvas.obj.on('object:removed', handler);
         // }
         // loader()
-        const ROBOTO_FONTS = [
-            {
-                weight: '400',
-                url: 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'
-            },
-            {
-                weight: '500',
-                url: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
-            },
-            {
-                weight: '700',
-                url: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2'
-            }
-        ];
+        // const ROBOTO_FONTS = [
+        //     {
+        //         weight: '400',
+        //         url: 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2'
+        //     },
+        //     {
+        //         weight: '500',
+        //         url: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2'
+        //     },
+        //     {
+        //         weight: '700',
+        //         url: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2'
+        //     }
+        // ];
         const loadFonts = async () => {
             // try {
             // Create FontFace instances for each weight
@@ -442,6 +498,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
 
             // Clean up test elements
             // testElements.forEach(element => document.body.removeChild(element));
+            if (!canvasEl.current) return;
 
             initcanvas.obj = new Canvas(canvasEl.current, {
                 width: canvasWidth,
@@ -471,7 +528,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
             initcanvas.obj.dispose()
         }
     }, [])
-    const saveCanvasState = (canvas) => {
+    const saveCanvasState = (canvas: Canvas) => {
         console.log(history.length);
         if (history.length >= MAX_HISTORY) {
             history.shift();
@@ -511,75 +568,104 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
             canvas.renderAll()
         }
     };
-    const handlePropertyChange = (property, value) => {
-        console.log(property, value);
+    // const handlePropertyChange = (property, value) => {
+    //     console.log(property, value);
 
-        // paintInfoRef.current.drawColor = color
-        // if (selectedObjs.current.length>0)
-        // selectedObjs.current.forEach(ele => {
-        //     ele.fill = e.target.value
-        // })
-        if (!canvas) return;
-        const activeObjects = canvas.getActiveObjects();
-        console.log(activeObjects);
+    //     // paintInfoRef.current.drawColor = color
+    //     // if (selectedObjs.current.length>0)
+    //     // selectedObjs.current.forEach(ele => {
+    //     //     ele.fill = e.target.value
+    //     // })
+    //     // if (!canvas) return;
+    //     const activeObjects = canvas.getActiveObjects();
+    //     console.log(activeObjects);
 
-        if (activeObjects.length > 0) {
-            activeObjects.forEach(obj => {
-                obj[property] = value
-            })
-            canvas.renderAll()
-        }
-    }
-    const handleBackgroundColorChange = (color) => {
-        console.log(color);
+    //     if (activeObjects.length > 0) {
+    //         activeObjects.forEach(obj => {
+    //             obj[property] = value
+    //         })
+    //         canvas.renderAll()
+    //     }
+    // }
+    // const handleBackgroundColorChange = (color) => {
+    //     console.log(color);
 
-        paintInfoRef.current.backgroundColor = color
-        // if (selectedObjs.current.length>0)
-        // selectedObjs.current.forEach(ele => {
-        //     ele.fill = e.target.value
-        // })
-        if (!canvas) return;
-        const activeObject = canvas.getActiveObject();
-        console.log(activeObject);
+    //     paintInfoRef.current.backgroundColor = color
+    //     // if (selectedObjs.current.length>0)
+    //     // selectedObjs.current.forEach(ele => {
+    //     //     ele.fill = e.target.value
+    //     // })
+    //     // if (!canvas) return;
+    //     const activeObject = canvas.getActiveObject();
+    //     console.log(activeObject);
 
-        if (activeObject) {
-            switch (activeObject.type) {
-                case "textbox":
-                    activeObject.textBackgroundColor = color
-                    break
-                default:
-                    activeObject.stroke = color
-                    break;
-            }
-            canvas.renderAll()
-        }
-    }
-    const handlefillColorChange = (color) => {
-        console.log(color);
+    //     if (activeObject) {
+    //         switch (activeObject.type) {
+    //             case "textbox":
+    //                 activeObject.textBackgroundColor = color
+    //                 break
+    //             default:
+    //                 activeObject.stroke = color
+    //                 break;
+    //         }
+    //         canvas.renderAll()
+    //     }
+    // }
+    // const handleNumberChange = (e) => {
+    //     const num = Number(e.target.value)
+    //     console.log(e, e.target.value, num);
 
-        paintInfoRef.current.drawColor = color
-        // if (selectedObjs.current.length>0)
-        // selectedObjs.current.forEach(ele => {
-        //     ele.fill = e.target.value
-        // })
-        if (!canvas) return;
-        const activeObject = canvas.getActiveObject();
-        console.log(activeObject);
+    //     // paintInfoRef.current.drawColor = color
+    //     // toolProperties.fill=color
+    //     // if (selectedObjs.current.length>0)
+    //     // selectedObjs.current.forEach(ele => {
+    //     //     ele.fill = e.target.value
+    //     // })
+    //     // if (!canvas) return;
+    //     const activeObject = canvas.getActiveObject();
+    //     // console.log(activeObject);
 
-        if (activeObject) {
-            // switch (activeObject.type) {
-            //     case "textbox":
-            //         activeObject.textBackgroundColor = color
-            //         break
-            //     default:
-            activeObject.fill = color
-            //         break;
-            // }
-            canvas.renderAll()
-        }
-    }
+    //     if (activeObject) {
+    //         // switch (activeObject.type) {
+    //         //     case "textbox":
+    //         //         activeObject.textBackgroundColor = color
+    //         //         break
+    //         //     default:
+    //         activeObject.strokeWidth = num
+    //         //         break;
+    //         // }
+    //         canvas.renderAll()
+    //     }
+    // }
+    // const handlefillColorChange = (color) => {
+    //     console.log(color);
 
-    const handleFileUploads = (e) => {
+    //     // paintInfoRef.current.drawColor = color
+    //     // toolProperties.fill = color
+    //     // if (selectedObjs.current.length>0)
+    //     // selectedObjs.current.forEach(ele => {
+    //     //     ele.fill = e.target.value
+    //     // })
+    //     // if (!canvas) return;
+    //     const activeObject = canvas.getActiveObject();
+    //     // console.log(activeObject);
+    //     console.log(activeObject, canvas.getActiveObjects());
+
+
+    //     if (activeObject) {
+    //         // switch (activeObject.type) {
+    //         //     case "textbox":
+    //         //         activeObject.textBackgroundColor = color
+    //         //         break
+    //         //     default:
+    //         activeObject.fill = color
+    //         //         break;
+    //         // }
+    //         canvas.renderAll()
+    //     }
+    // }
+
+    const handleFileUploads = (e: React.ChangeEvent<HTMLInputElement>) => {
         console.log(e);
 
         if (!e.target.files || e.target.files.length <= 0) {
@@ -591,17 +677,28 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
         reader.onloadend = () => {
             // setBgImgSrc((reader.result as string) || "");
             const imgElement = new Image();
-            imgElement.src = reader.result || "";
+            imgElement.src = (reader.result || "") as string;
             imgElement.onload = () => loadImgToCanvas(imgElement, e)
         };
         reader.readAsDataURL(file);
     }
-    const handleKeyDown = (e) => {
+
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        // if (!canvas) return;
+
+        if (e.key == "Alt" || e.key == "Shift") return
         console.log(e.key, e);
 
         const activeObjects = canvas.getActiveObjects() || [];
         if (activeObjects.length === 0) return
-        if (activeObjects[0].type == "textbox" && activeObjects[0].isEditing) return
+        if (activeObjects[0].isMoving) {
+            e.preventDefault()
+            return;
+        }
+        if (activeObjects[0].type == "textbox" && (activeObjects[0] as Textbox).isEditing) return
+        // if (e.key == "Alt")
+        // cloneObjRef.current = activeObjects
 
         canvas.discardActiveObject()
         activeObjects.forEach(activeObject => {
@@ -616,11 +713,13 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                         e.preventDefault()
                         undo()
                     }
+                    break;
                 case "r":
                     if (e.ctrlKey) {
                         e.preventDefault()
                         redo()
                     }
+                    break;
                 case "ArrowUp":
                     e.preventDefault()
                     activeObject.setRelativeY(activeObject.top - 1)
@@ -646,132 +745,190 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
         canvas.setActiveObject(new fabric.ActiveSelection(activeObjects))
         canvas.renderAll();
     };
-    const setPropertyList = () => {
-        const listOfProp = new Set([])
-        const objs = canvas.getActiveObjects()
 
-        if (objs.length == 0) {
-            setPropVisibilityList([])
-            return;
-        }
-
-        objs.forEach(obj => {
-            switch (obj.type) {
-                case "textbox":
-                    listOfProp.add("fontSize")
-                    listOfProp.add("alignment")
-                    listOfProp.add("textStyles")
-                    listOfProp.add("fillColor")
-                    listOfProp.add("backgroundColor")
-                    console.log(obj.getSelectionStyles(0, 5))
-                    setToolProperties({
-                        fill: obj.fill,
-                        fontFamily: obj.fontFamily,
-                        fontSize: obj.fontSize,
-                        fontStyle: obj.fontStyle,//"oblique,italic"
-                        fontWeight: obj.fontWeight,
-                        // linethrough: false,
-                        // overline: false,
-                        // stroke: null,
-                        // strokeWidth: 1,
-                        textBackgroundColor: obj.textBackgroundColor,
-                        underline: obj.underline,
-                        textAlign: obj.textAlign//“left”, “center”, “right”, “justify”,
+    // setToolProperties({
+    //     fill: obj.fill,
+    //     fontFamily: obj.fontFamily,
+    //     fontSize: obj.fontSize,
+    //     fontStyle: obj.fontStyle,//"oblique,italic"
+    //     fontWeight: obj.fontWeight,
+    //     // linethrough: false,
+    //     // overline: false,
+    //     // stroke: null,
+    //     // strokeWidth: 1,
+    //     textBackgroundColor: obj.textBackgroundColor,
+    //     underline: obj.underline,
+    //     textAlign: obj.textAlign//“left”, “center”, “right”, “justify”,
 
 
-                        // fill: "#ff000080",
-                        // fontFamily: "Times New Roman",
-                        // fontSize: 20,
-                        // fontStyle: "normal",oblique,italic
-                        // fontWeight: "normal",
-                        // linethrough: false,
-                        // overline: false,
-                        // stroke: null,
-                        // strokeWidth: 1,
-                        // textBackgroundColor: "",
-                        // underline: false,
-                        // textAlign: "left"//“left”, “center”, “right”, “justify”,
-                    })
-                    break;
-                // case "textbox":
-                //     listOfProp.add("fontSize")
-                //     listOfProp.add("alignment")
-                //     listOfProp.add("textStyles")
-                //     listOfProp.add("fillColor")
-                //     listOfProp.add("backgroundColor")
-                //     console.log(obj.getSelectionStyles(0, 5))
-                //     setToolProperties({
-                //         fill: obj.fill,
-                //         fontFamily: obj.fontFamily,
-                //         fontSize: obj.fontSize,
-                //         fontStyle: obj.fontStyle,//"oblique,italic"
-                //         fontWeight: obj.fontWeight,
-                //         // linethrough: false,
-                //         // overline: false,
-                //         // stroke: null,
-                //         // strokeWidth: 1,
-                //         textBackgroundColor: obj.textBackgroundColor,
-                //         underline: obj.underline,
-                //         textAlign: obj.textAlign//“left”, “center”, “right”, “justify”,
+    //     // fill: "#ff000080",
+    //     // fontFamily: "Times New Roman",
+    //     // fontSize: 20,
+    //     // fontStyle: "normal",oblique,italic
+    //     // fontWeight: "normal",
+    //     // linethrough: false,
+    //     // overline: false,
+    //     // stroke: null,
+    //     // strokeWidth: 1,
+    //     // textBackgroundColor: "",
+    //     // underline: false,
+    //     // textAlign: "left"//“left”, “center”, “right”, “justify”,
+    // })
+    //     setToolProperties({
+    //         fill: obj.fill,
+    //         fontFamily: obj.fontFamily,
+    //         fontSize: obj.fontSize,
+    //         fontStyle: obj.fontStyle,//"oblique,italic"
+    //         fontWeight: obj.fontWeight,
+    //         // linethrough: false,
+    //         // overline: false,
+    //         // stroke: null,
+    //         // strokeWidth: 1,
+    //         textBackgroundColor: obj.textBackgroundColor,
+    //         underline: obj.underline,
+    //         textAlign: obj.textAlign//“left”, “center”, “right”, “justify”,
 
 
-                //         // fill: "#ff000080",
-                //         // fontFamily: "Times New Roman",
-                //         // fontSize: 20,
-                //         // fontStyle: "normal",oblique,italic
-                //         // fontWeight: "normal",
-                //         // linethrough: false,
-                //         // overline: false,
-                //         // stroke: null,
-                //         // strokeWidth: 1,
-                //         // textBackgroundColor: "",
-                //         // underline: false,
-                //         // textAlign: "left"//“left”, “center”, “right”, “justify”,
-                //     })
-                //     break;
+    //         // fill: "#ff000080",
+    //         // fontFamily: "Times New Roman",
+    //         // fontSize: 20,
+    //         // fontStyle: "normal",oblique,italic
+    //         // fontWeight: "normal",
+    //         // linethrough: false,
+    //         // overline: false,
+    //         // stroke: null,
+    //         // strokeWidth: 1,
+    //         // textBackgroundColor: "",
+    //         // underline: false,
+    //         // textAlign: "left"//“left”, “center”, “right”, “justify”,
+    //     })
+    //     break;
+    // const getPropertyList = () => {
+    //     // const textbox = new Set(["fontSize", "textAlign", "fontStyle", "fontWeight", "fill", "textBackgroundColor"])
+    //     // const image = new Set(["fill", "stroke", "strokeWidth"])
+    //     // const ellipse = new Set(["fill", "backgroundColor"])
+    //     // const rect = new Set(["fill", "backgroundColor"])
+    //     const textbox = new Set(["width", "fontSize", "rotation", "opacity", "textAlign", "fontStyle", "fontWeight", "background", "textBackgroundColor"])
+    //     const image = new Set(["width", "height", "rotation", "opacity", "border", "borderWidth", "borderCurve"])
+    //     const ellipse = new Set(["width", "height", "rotation", "opacity", "border", "borderWidth", "borderCurve", "radious", "background"])
+    //     const rect = new Set(["width", "height", "rotation", "opacity", "border", "borderWidth", "borderCurve", "background"])
 
-                default:
-                    listOfProp.add("fillColor")
-                    listOfProp.add("backgroundColor")
-                    setToolProperties(p => ({
-                        ...p,
-                        fill: obj.fill,
-                        stroke: obj.stroke
-                    }))
-                    break;
-            }
-            // })
-        })
-        setPropVisibilityList([...listOfProp.values()])
-    }
-
-    const listEle = () => {
-        const objects = canvas.getObjects()
-        console.log(objects);
-
-        console.log(objects.map((obj) => {
-            return obj.type
-        }));
-
-        // function pasteText() {
-        // if (navigator.clipboard) {
-        //     navigator.clipboard.clone(function (clonedObj) {
-        //         canvas.discardActiveObject();
-        //         clonedObj.set({
-        //             left: clonedObj.left + 10,
-        //             top: clonedObj.top + 10,
-        //             evented: true,
-        //         });
-        //         canvas.add(clonedObj);
-        //         canvas.setActiveObject(clonedObj);
-        //         canvas.requestRenderAll();
-        //     });
-        // }
-        // }
-    }
+    //     const listOfEle = new Set([])
 
 
-    const moveObject = (val) => {
+    //     // const listOfProp = {
+    //     //     fontSize: 0,
+    //     //     fontStyle: 0,
+    //     //     fontWeight: 0,
+    //     //     textAlign: 0,
+    //     //     fill: 0,
+    //     //     backgroundColor: 0,
+    //     //     textBackgroundColor:0,
+    //     //     stroke: 0,
+    //     //     strokeWidth: 0,
+
+    //     // }
+
+    //     if (!canvas)
+    //         return new Set([])
+
+    //     const objs = canvas.getActiveObjects()
+
+    //     if (objs.length == 0) {
+    //         // setPropVisibilityList([])
+    //         return new Set([]);
+    //     }
+
+    //     objs.forEach(obj => {
+    //         console.log(obj.type);
+
+    //         listOfEle.add(obj.type)
+
+
+    //     })
+
+    //     const getProperties = (eleName) => {
+    //         switch (eleName) {
+    //             case "textbox":
+    //                 // fill - text Color
+    //                 // textBackgroundColor - backgroundColor of he text
+    //                 // stroke - text outer color
+    //                 // strokeWidth - text outer color width (number)
+
+    //                 return textbox
+    //             case "image":
+    //                 // stroke - borderColor
+    //                 // strokeWidth - borderWidth
+    //                 return image
+    //             case "ellipse":
+    //                 // stroke - borderColor
+    //                 // strokeWidth - borderWidth
+    //                 return ellipse
+    //             case "rect":
+    //                 // stroke - borderColor
+    //                 // strokeWidth - borderWidth
+    //                 return rect
+    //             default:
+    //                 return new Set([""])
+    //         }
+    //     }
+
+
+
+    //     // intersection of objects properties
+    //     const tools = new Set([])
+    //     const selectedElementTypes = Array.from(listOfEle)
+    //     const baseEleProperties = Array.from(getProperties(selectedElementTypes[0]))
+    //     baseEleProperties.forEach(property => {
+    //         if (selectedElementTypes.length == 1) {
+    //             tools.add(property)
+    //         } else {
+    //             for (let i = 1; i < selectedElementTypes.length; i++) {
+    //                 const eleProperties = getProperties(selectedElementTypes[i]);
+    //                 if (eleProperties.has(property))
+    //                     tools.add(property)
+    //             }
+    //         }
+    //     })
+
+    //     console.log("tools", tools);
+    //     return tools
+    //     // listOfEle.entries(objType=>{
+    //     //     objType
+    //     // tools.add({
+    //     //     title:""
+    //     // })
+
+    //     // setPropVisibilityList([...listOfProp.values()])
+    // }
+
+    // const listEle = () => {
+    //     const objects = canvas.getObjects()
+    //     console.log(objects);
+
+    //     console.log(objects.map((obj) => {
+    //         return obj.type
+    //     }));
+
+    //     // function pasteText() {
+    //     // if (navigator.clipboard) {
+    //     //     navigator.clipboard.clone(function (clonedObj) {
+    //     //         canvas.discardActiveObject();
+    //     //         clonedObj.set({
+    //     //             left: clonedObj.left + 10,
+    //     //             top: clonedObj.top + 10,
+    //     //             evented: true,
+    //     //         });
+    //     //         canvas.add(clonedObj);
+    //     //         canvas.setActiveObject(clonedObj);
+    //     //         canvas.requestRenderAll();
+    //     //     });
+    //     // }
+    //     // }
+    // }
+
+
+    const moveObject = (val: objMoveType) => {
         const activeObject = canvas.getActiveObject();
         if (!activeObject) return;
         switch (val) {
@@ -790,7 +947,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
         }
         canvas.renderAll();
     }
-    const alignObject = (val) => {
+    const alignObject = (val: objPositionType) => {
         const activeObjects = canvas.getActiveObjects();
         if (activeObjects.length < 1) return;
         canvas.discardActiveObject()
@@ -831,14 +988,16 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
     //     return json
     //     // localStorage.setItem("canvasJSON", json)
     // }
-    const loadJson = async (json) => {
+    const loadJson = async (json: Object) => {
+        // if (!canvas) return;
         paintInfoRef.current.isLoadingJson = true
         await canvas.loadFromJSON(json);
         paintInfoRef.current.isLoadingJson = false
 
     }
-    const retrive = async (data) => {
+    const retrive = async (data: string) => {
         console.log(data);
+        // if (!canvas) return;
         canvas.clear()
         const json = JSON.parse(data || "{}"); //|| localStorage.getItem("canvasJSON") 
         await loadJson(json)
@@ -848,9 +1007,9 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
 
 
     }
-    const chagneCanvasSetings = (width, height, bgcolor) => {
+    const chagneCanvasSetings = (width: number, height: number, bgcolor = undefined) => {
         // console.log(canvas);
-
+        // if (!canvas) return;
         let cWidth = canvasWidth, cHeight = canvasHeight, cBackgroundColor = canvasBackgroundColor;
         if (width) {
             cWidth = Number(width)
@@ -965,7 +1124,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                                     lockScalingX: true,
                                     lockScalingY: true,
                                     lockRotation: true,
-                                    strokeLineCap: "qrcode",
+                                    id: "qrcode",
 
                                 })
                                 imgObj.scaleToWidth(130)
@@ -982,7 +1141,7 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                             }} className='shadow p-2 w-11'><img src={"https://certificates.redrindia.org/qr.webp"} className="" />
                             </button>
                             <button title='Create from existing' style={{ borderRadius: "8px", background: tool === "text" ? "#5555ff" : undefined }} onClick={() => {
-                                templateRef.current.click()
+                                templateRef.current?.click()
                             }} className='shadow p-2 w-11'>
                                 <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M6.25 2.5C5.25544 2.5 4.30161 2.89509 3.59835 3.59835C2.89509 4.30161 2.5 5.25544 2.5 6.25V16.25C2.5 17.2446 2.89509 18.1984 3.59835 18.9017C4.30161 19.6049 5.25544 20 6.25 20H8.79375C8.76425 19.793 8.74963 19.5841 8.75 19.375V13.125C8.75 11.9 9.2525 10.7937 10.0625 10H6.875C6.70924 10 6.55027 9.93415 6.43306 9.81694C6.31585 9.69973 6.25 9.54076 6.25 9.375C6.25 9.20924 6.31585 9.05027 6.43306 8.93306C6.55027 8.81585 6.70924 8.75 6.875 8.75H19.375C19.5875 8.75 19.7958 8.76458 20 8.79375V6.25C20 5.25544 19.6049 4.30161 18.9017 3.59835C18.1984 2.89509 17.2446 2.5 16.25 2.5H6.25ZM6.25 6.875C6.25 6.70924 6.31585 6.55027 6.43306 6.43306C6.55027 6.31585 6.70924 6.25 6.875 6.25H15.625C15.7908 6.25 15.9497 6.31585 16.0669 6.43306C16.1842 6.55027 16.25 6.70924 16.25 6.875C16.25 7.04076 16.1842 7.19973 16.0669 7.31694C15.9497 7.43415 15.7908 7.5 15.625 7.5H6.875C6.70924 7.5 6.55027 7.43415 6.43306 7.31694C6.31585 7.19973 6.25 7.04076 6.25 6.875ZM10 13.125C10 12.2962 10.3292 11.5013 10.9153 10.9153C11.5013 10.3292 12.2962 10 13.125 10H19.375C20.2038 10 20.9987 10.3292 21.5847 10.9153C22.1708 11.5013 22.5 12.2962 22.5 13.125V13.75H10V13.125ZM10 19.375V15H22.5V19.375C22.5 20.2038 22.1708 20.9987 21.5847 21.5847C20.9987 22.1708 20.2038 22.5 19.375 22.5H13.125C12.2962 22.5 11.5013 22.1708 10.9153 21.5847C10.3292 20.9987 10 20.2038 10 19.375Z" fill="black" />
@@ -1032,167 +1191,42 @@ const CanvasComponent = ({ initialValue, templateRef, commmunicate, parentCanvas
                     {/* <div style={{  background: "url(data:image/svg+xml;utf8,%3Csvg%20width%3D%222%22%20height%3D%222%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M0%200h1v2h1V1H0%22%20fill-rule%3D%22nonzero%22%20fill%3D%22%23e1e1e1%22/%3E%3C/svg%3E)" }}>
                         <div></div>
                     </div> */}
-                    <div className='flex flex-col gap-2 w-max'>
-                        <div className='flex flex-col'>
-                            <label htmlFor="">Fill Color</label>
-                            <ColorDropdown currentColor={toolProperties.fill} defaultColor={toolProperties.fill} onChange={handlefillColorChange} />
-                        </div>
-                        <div className='flex flex-col'>
-                            <label htmlFor="">Background Color</label>
-                            <ColorDropdown currentColor={toolProperties.backgroundColor} defaultColor={toolProperties.backgroundColor} onChange={handleBackgroundColorChange} />
-                        </div>
-                        <div className="flex gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Size</label>
-                                <input type="number" className='w-min text-center max-w-[4rem]' value={toolProperties.fontSize} onChange={(e) => {
-                                    setToolProperties(p => ({ ...p, fontSize: Number(e.target.value) }))
-                                }} />
-                            </div>
-                        </div>
-                        <div className="flex gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Font</label>
-                                <select onChange={(e) => {
-                                    setToolProperties(p => ({ ...p, fontFamily: e.target.value }))
-                                }} value={toolProperties.fontFamily}>
-                                    {/* <option value="Times New Roman">Times New Roman</option> */}
-                                    {/* <option value="Arial">Arial</option> */}
-                                    {/* <option value="Roboto">Roboto</option>
-                                    <option value="Happy Monkey">Happy Monkey</option>
-                                    <option value="Yatra One">Yatra One</option>
-                                    <option value="Rancho">Rancho</option>
-                                    <option value="Permanent Marker">Permanent Marker</option>
-                                    <option value="Nerko One">Nerko One</option>
-                                    <option value="Itim">Itim</option>
-                                    <option value=""></option> */}
-
-
-                                    <option value="Arial,sans-serif">Arial</option>
-                                    <option value="Verdana,sans-serif">Verdana</option>
-                                    <option value="Tahoma,sans-serif">Tahoma</option>
-                                    <option value="Trebuchet MS,sans-serif">Trebuchet MS</option>
-                                    <option value="Times New Roman,serif">Times New Roman</option>
-                                    <option value="Georgia,serif">Georgia</option>
-                                    <option value="Garamond,serif">Garamond</option>
-                                    <option value="Courier New,monospace">Courier New</option>
-                                    <option value="Brush Script MT,cursive">Brush Script MT</option>
-                                </select>
-                                {/* <input type="number" className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(null, e.target.value)} defaultValue={canvas?.height} /> */}
-                            </div>
-
-                        </div>
-                        <div className="flex gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Font weight</label>
-                                <select onChange={(e) => {
-                                    setToolProperties(p => ({ ...p, fontWeight: e.target.value }))
-                                }} value={toolProperties.fontWeight}>
-                                    {/* <option value="Times New Roman">Times New Roman</option> */}
-                                    {/* <option value="Arial">Arial</option> */}
-                                    {/* <option value="Bold">Bold</option>
-                                    <option value="100">100</option> */}
-                                    <option value="200">200</option>
-                                    {/* <option value="300">300</option> */}
-                                    <option value="400">400</option>
-                                    {/* <option value="500">500</option> */}
-                                    <option value="600">600</option>
-                                    {/* <option value="700">700</option> */}
-                                    {/* <option value="800">800</option> */}
-                                    {/* <option value="900">900</option> */}
-                                </select>
-                                {/* <input type="number" className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(null, e.target.value)} defaultValue={canvas?.height} /> */}
-                            </div>
-
-                        </div>
-                        <div className="flex gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Font Style</label>
-                                <select onChange={(e) => {
-                                    setToolProperties(p => ({ ...p, fontStyle: e.target.value }))
-                                }} value={toolProperties.fontStyle}>
-                                    {/* <option value="Times New Roman">Times New Roman</option> */}
-                                    {/* <option value="Arial">Arial</option> */}
-                                    {/* <option value="Bold">Bold</option>
-                                    <option value="100">100</option> */}
-                                    <option value="normal">normal</option>
-                                    {/* <option value="oblique">oblique</option> */}
-                                    {/* <option value="300">300</option> */}
-                                    <option value="italic">Italic</option>
-                                    {/* <option value="500">500</option> */}
-                                    {/* <option value="600">600</option> */}
-                                    {/* <option value="700">700</option> */}
-                                    {/* <option value="800">800</option> */}
-                                    {/* <option value="900">900</option> */}
-                                </select>
-                                {/* <input type="number" className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(null, e.target.value)} defaultValue={canvas?.height} /> */}
-                            </div>
-
-                        </div>
-                        <div className="flex gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Align</label>
-                                <select onChange={(e) => {
-                                    setToolProperties(p => ({ ...p, textAlign: e.target.value }))
-                                }} value={toolProperties.textAlign}>
-                                    <option value="left">left</option>
-                                    <option value="right">right</option>
-                                    <option value="center">center</option>
-                                    <option value="justify">justify</option>
-                                </select>
-                                {/* <input type="number" className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(null, e.target.value)} defaultValue={canvas?.height} /> */}
-                            </div>
-
-                        </div>
-                        {/* <div className="flex flex-col gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Border Width</label>
-                                <input type="number" value={toolProperties.borderWidth} className='w-min text-center max-w-[4rem]' onChange={(e) => handlePropertyChange("borderWidth", Number(e.target.value))} defaultValue={canvas?.width} />
-                            </div>
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Border color</label>
-                                <ColorDropdown currentColor={toolProperties.fill} defaultColor={toolProperties.fill} onChange={(color) => {
-                                    handlePropertyChange("borderColor", color)
-                                }} />
-                            </div>
-                        </div> */}
-                        <div className="flex gap-1">
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Width</label>
-                                <input type="number" value={canvasWidth} className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(e.target.value)} defaultValue={canvas?.width} />
-                            </div>
-                            <div className='flex flex-col'>
-                                <label htmlFor="">Height</label>
-                                <input type="number" value={canvasHeight} className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(null, e.target.value)} defaultValue={canvas?.height} />
-                            </div>
-                        </div>
-                    </div>
+                    {
+                        // Array.from(getPropertyList()).map(property=><h1 key={property}>{property}</h1>)
+                    }
+                    <Properties canvas={canvas} />
                 </div>
             </div>
 
         </div>
     );
 };
-export function ShowCanvas({ initialData, showDownload, makeitimg = false, location = window.location.href, downloadName = window.location.pathname }) {
-    const [canvas, setCanvas] = useState();
-    const canvasEl = useRef();
-    const qrcodeRef = useRef()
-    const containerRef = useRef()
-    const json = JSON.parse(initialData || "{}");
+interface ShowCanvasProps { initialData: string, showDownload: Boolean, makeitimg: Boolean, location: string, downloadName: string }
+export const ShowCanvas: FunctionComponent<ShowCanvasProps> = ({ initialData, showDownload, makeitimg = false, location = window.location.href, downloadName = window.location.pathname }) => {
+    const [canvas, setCanvas] = useState<Canvas>(() => new Canvas());
+    const canvasEl = useRef<HTMLCanvasElement>(null);
+    const qrcodeRef = useRef<HTMLCanvasElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const json = JSON.parse(initialData || "{ }");
 
-    const retrive = async (data) => {
+    const retrive = async (_: string) => {
         // console.log(data);
-        await canvas.loadFromJSON(json, function (o, object) {
+        // if (!canvas) return;
 
-            if (!object.strokeLineCap) return;
-            if (object.strokeLineCap !== "qrcode") return;
+        await canvas.loadFromJSON(json, function (_, object) {
+
+            if (!qrcodeRef.current) return;
+            const object1 = object as FabricImage & { id?: "" }
+            if (!object1.id) return;
+            if ((object1.id as string) !== "qrcode") return;
 
             const imgDataURL = qrcodeRef.current.toDataURL("image/png");
             const qrImage = new Image();
             qrImage.src = imgDataURL;
             qrImage.onload = () => {
-                object.setElement(qrImage)
-                object.scaleToWidth(130)
-                object.scaleToHeight(130)
+                object1.setElement(qrImage)
+                object1.scaleToWidth(130)
+                object1.scaleToHeight(130)
                 canvas.renderAll();
             };
         });
@@ -1204,29 +1238,35 @@ export function ShowCanvas({ initialData, showDownload, makeitimg = false, locat
     }
 
     const finalImg = () => {
+        // if (!canvas) return;
 
         const dataURL = canvas.toDataURL({
             format: 'png',
-            quality: 1.0 // 0.0 to 1.0
+            quality: 1.0, // 0.0 to 1.0
+            // TODO: confirm the below value
+            multiplier: 1
         });
 
         // Create an image element
         const imgElement = document.createElement('img');
         imgElement.src = dataURL;
+        if (!containerRef.current) return;
         containerRef.current.innerHTML = ""
         containerRef.current.appendChild(imgElement);
 
-        window.downloadLink = dataURL
+        (window as customWindow).downloadLink = dataURL
 
     }
+    type customWindow = (Window & { downloadLink?: string })
     const handleDownload = () => {
         const ele = document.createElement("a")
-        ele.href = window.downloadLink
+        ele.href = (window as customWindow).downloadLink || ""
         ele.download = downloadName
         ele.click()
     }
 
     useEffect(() => {
+        if (!canvasEl.current) return;
         const canvas = new Canvas(canvasEl.current, {
             width: json?.canvasWidth || 1056,
             height: json?.canvasHeight || 816,
@@ -1243,7 +1283,7 @@ export function ShowCanvas({ initialData, showDownload, makeitimg = false, locat
     }, [])
 
     useEffect(() => {
-        if (!canvas) return;
+        // if (!canvas) return;
         retrive(initialData).then(() => {
             if (makeitimg)
                 setTimeout(finalImg, 0)
@@ -1257,8 +1297,8 @@ export function ShowCanvas({ initialData, showDownload, makeitimg = false, locat
                 size={100}
                 imageSettings={{
                     src: "/cropped-fevIocn-192x192.png",
-                    x: null, // Positioning of the logo (null for center)
-                    y: null,
+                    // x: null, // Positioning of the logo (null for center)
+                    // y: null,
                     height: 20, // Height of the logo
                     width: 20, // Width of the logo
                     excavate: true,
@@ -1271,7 +1311,7 @@ export function ShowCanvas({ initialData, showDownload, makeitimg = false, locat
         {showDownload && <button onClick={handleDownload} className="btn btn-primary w-min ">Download</button>}
     </div>
 }
-const CanvasPaint = forwardRef((props, ref) => {
+const CanvasPaint = forwardRef<HTMLCanvasElement>((_, ref) => {
     return <canvas ref={ref} style={{ border: '1px solid black' }} />
 
 })

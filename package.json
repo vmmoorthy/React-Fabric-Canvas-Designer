@@ -2,9 +2,10 @@
   "name": "canvasfabricdesigner",
   "version": "1.0.0",
   "description": "",
-  "main": "index.jsx",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build":"tsc",
+    "dev":"tsc --watch"
   },
   "keywords": [],
   "author": "",
@@ -12,5 +13,9 @@
   "dependencies": {
     "fabric": "^6.4.3",
     "qrcode.react": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "typescript": "^5.7.2"
   }
 }
