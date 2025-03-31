@@ -2,19 +2,19 @@ import { Ellipse } from "fabric";
 import { CustomFabric } from "./CustomFabric";
 
 export class EllipseObj extends CustomFabric {
-    rectObj: Ellipse;
+    ellipseObj: Ellipse;
     constructor(rectObj: Ellipse) {
         super(rectObj)
-        this.rectObj = rectObj
+        this.ellipseObj = rectObj
     }
     setBackground(background: string): void {
-        this.rectObj.set("textBackgroundColor", background)
+        this.ellipseObj.set("textBackgroundColor", background)
     }
     setBorder(color: string): void {
-        this.rectObj.set("stroke", color)
+        this.ellipseObj.set("stroke", color)
 
     }
-    setHeight(_: string): void {
+    setHeight(_: number): void {
 
     }
     setOpacity(_: string): void {
@@ -23,7 +23,7 @@ export class EllipseObj extends CustomFabric {
     setRotaion(_: string): void {
 
     }
-    setWidth(_: string): void {
-
+    setWidth(width: number): void {
+        this.ellipseObj.set("width", width)
     }
 }

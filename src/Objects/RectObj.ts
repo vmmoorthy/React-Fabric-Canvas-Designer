@@ -14,7 +14,10 @@ export class RectObj extends CustomFabric {
         this.rectObj.set("stroke", color)
 
     }
-    setHeight(_: string): void {
+    setBorderWidth(width: number): void {
+        this.rectObj.set("strokeWidth", width)
+    }
+    setHeight(_height: number): void {
 
     }
     setOpacity(_: string): void {
@@ -23,7 +26,7 @@ export class RectObj extends CustomFabric {
     setRotaion(_: string): void {
 
     }
-    setWidth(_: string): void {
-
+    setWidth(width: number): void {
+        this.rectObj.set("width", width)
     }
 }

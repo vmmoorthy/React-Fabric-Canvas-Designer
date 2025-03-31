@@ -14,7 +14,7 @@ export class LineObj extends CustomFabric {
         this.obj.set("stroke", color)
 
     }
-    setHeight(_: string): void {
+    setHeight(_:  number): void {
 
     }
     setOpacity(_: string): void {
@@ -23,7 +23,7 @@ export class LineObj extends CustomFabric {
     setRotaion(_: string): void {
 
     }
-    setWidth(_: string): void {
+    setWidth(_: number): void {
 
     }
 }

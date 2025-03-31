@@ -1,7 +1,7 @@
-import { FunctionComponent, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
-import ColorDropdown from "./ColorInput";
 import { Canvas, FabricText } from 'fabric';
+import ColorDropdown from "./ColorInput";
 import { FabricObjectAdapter } from './FabricObjectAdapter';
 
 export const getselectedObj = (canvas: Canvas) => {
@@ -13,11 +13,11 @@ interface PropertiesProps {
     canvas: Canvas
 }
 
-const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
+const Properties: FC<PropertiesProps> = ({ canvas }) => {
 
     const [properties, setProperties] = useState<string[]>([]);
-    type propertyValueType = { background: string, borderColor: string }
-    const [propertyValue, setPropertyValue] = useState<propertyValueType>({ background: "", borderColor: "" });
+    type propertyValueType = { background: string, borderColor: string, width: number, height: number, borderWidth: number }
+    const [propertyValue, setPropertyValue] = useState<propertyValueType>({ background: "", borderColor: "", height: 0, width: 0 });
 
     useEffect(() => {
         if (canvas) {
@@ -65,7 +65,10 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
         })
         const propertyValues: propertyValueType = {
             background: "",
-            borderColor: ""
+            borderColor: "",
+            borderWidth: 1,
+            width: 0,
+            height: 0
         }
         const getProperties = (eleName: string) => {
             switch (eleName) {
@@ -76,6 +79,8 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
                     // strokeWidth - text outer color width (number)
                     propertyValues.background = (objs[0] as FabricText).textBackgroundColor as string
                     propertyValues.borderColor = objs[0].stroke as string
+                    propertyValues.width = objs[0].width
+                    propertyValues.height = objs[0].height
                     return textbox
                 case "image":
                     // stroke - borderColor
@@ -92,6 +97,7 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
                     // strokeWidth - borderWidth
                     propertyValues.background = objs[0].fill as string
                     propertyValues.borderColor = objs[0].stroke as string
+                    propertyValues.borderWidth = objs[0].strokeWidth as number
                     return rect
                 default:
                     return new Set([""])
@@ -127,60 +133,77 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
 
         // setPropVisibilityList([...listOfProp.values()])
     }
-
-    const handleBackgroundColorChange = (color: string) => {
+    const propertyChange = (propertyName: string, value: string | number) => {
         if (!canvas) return;
         const selectedObj = getselectedObj(canvas)
-
-        // console.log("selectedObj");
-
         selectedObj.forEach(obj => {
             const objAdapter = FabricObjectAdapter.createAdapter(obj.type, obj)
-            objAdapter.setBackground(color)
-            // switch (obj.type) {
-            //     case "rect":
-            //         obj.set("fill", color);
-            //         break;
-            //     case "ellipse":
-            //         obj.set("fill", color);
-            //         break;
-            //     case "image":
-            //         break;
-            //     case "textbox":
-            //         obj.set("textBackgroundColor", color);
-            //         break;
-            // }
+            switch (propertyName) {
+                case "background":
+                    objAdapter.setBackground(value.toString())
+                    setPropertyValue(p => ({ ...p, background: value.toString() }))
+                    break;
+                case "borderColor":
+                    objAdapter.setBorder(value.toString())
+                    setPropertyValue(p => ({ ...p, borderColor: value.toString() }))
+
+                    break;
+
+
+                default:
+                    break;
+            }
+
         })
-        setPropertyValue(p => ({ ...p, background: color }))
         canvas.renderAll()
     }
+
+
     const handleBorderColorChange = (color: string) => {
         if (!canvas) return;
         const selectedObj = getselectedObj(canvas)
-        console.log("selectedObj");
 
         selectedObj.forEach(obj => {
             const objAdapter = FabricObjectAdapter.createAdapter(obj.type, obj)
             objAdapter.setBorder(color)
 
-            // switch (obj.type) {
-            //     case "rect":
-            //         obj.set("stroke", color)
-            //         break;
-            //     case "ellipse":
-            //         obj.set("borderColor", color)
-            //         break;
-            //     case "image":
-            //         break;
-            //     case "textbox":
-            //         obj.set("stroke", color)
-            //         break;
-            // }
+            obj.setCoords();
             obj.set("hasBorders", false);
         })
         setPropertyValue(p => ({ ...p, borderColor: color }))
         canvas.renderAll()
     }
+    const handleWidthChange = (width: number) => {
+        if (!canvas) return;
+        const selectedObj = getselectedObj(canvas)
+
+
+        selectedObj.forEach(obj => {
+            const objAdapter = FabricObjectAdapter.createAdapter(obj.type, obj)
+            objAdapter.setWidth(width)
+
+            obj.set("hasBorders", false);
+        })
+        setPropertyValue(p => ({ ...p, width }))
+        canvas.renderAll()
+    }
+    const handleBorderWidthChange = (width: number) => {
+        if (!canvas) return;
+        const selectedObj = getselectedObj(canvas)
+
+
+        selectedObj.forEach(obj => {
+            const objAdapter = FabricObjectAdapter.createAdapter(obj.type, obj)
+            objAdapter.setBorderWidth(width)
+
+
+            obj.set("hasBorders", false);
+            obj.setCoords()
+        })
+        setPropertyValue(p => ({ ...p, width }))
+        canvas.renderAll()
+    }
+
     return (<>
         <div className='flex flex-col gap-2 w-max'>
             {/* <div className='flex flex-col'>
@@ -196,6 +219,15 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
                 <div className='flex flex-col'>
                     <label htmlFor="">Border Color</label>
                     <ColorDropdown currentColor={propertyValue.borderColor} onChange={handleBorderColorChange} />
+                </div>}
+            {properties.includes("borderWidth") &&
+                <div className='flex flex-col'>
+                    <label htmlFor="">Border Color</label>
+                    <input type="number"
+                        value={propertyValue.width}
+                        onChange={e => handleWidthChange(parseInt(e.target.value))}
+                        className='w-min text-center max-w-[4rem]'
+                    />
                 </div>}
             {/* <div className="flex gap-1">
                             <div className='flex flex-col'>
@@ -239,7 +271,7 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
             </div>
             <div className="flex gap-1">
                 <div className='flex flex-col'>
-                    <label htmlFor="">Font weight</label>
+                    {/* <label htmlFor="">Font weight</label> */}
                     {/* <select onChange={(e) => { */}
                     {/* setToolProperties(p => ({ ...p, fontWeight: e.target.value }))
                      }} value={toolProperties.fontWeight}> */}
@@ -262,7 +294,7 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
             </div>
             <div className="flex gap-1">
                 <div className='flex flex-col'>
-                    <label htmlFor="">Font Style</label>
+                    {/* <label htmlFor="">Font Style</label> */}
                     {/* <select onChange={(e) => {
                         setToolProperties(p => ({ ...p, fontStyle: e.target.value }))
                     }} value={toolProperties.fontStyle}> */}
@@ -286,7 +318,7 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
             </div>
             <div className="flex gap-1">
                 <div className='flex flex-col'>
-                    <label htmlFor="">Align</label>
+                    {/* <label htmlFor="">Align</label> */}
                     {/* <select onChange={(e) => {
                         setToolProperties(p => ({ ...p, textAlign: e.target.value }))
                     }} value={toolProperties.textAlign}>
@@ -312,16 +344,16 @@ const Properties: FunctionComponent<PropertiesProps> = ({ canvas }) => {
                             </div>
                         </div> */}
             <div className="flex gap-1">
-                <div className='flex flex-col'>
-                    <label htmlFor="">Width</label>
-                    {/* <input type="number"
-                        value={canvasWidth}
-                        onChange={handleNumberChange}
+                {properties.includes("background") && <div className='flex flex-col'>
+                    {/* <label htmlFor="">Width</label> */}
+                    <input type="number"
+                        value={propertyValue.width}
+                        onChange={e => handleWidthChange(parseInt(e.target.value))}
                         className='w-min text-center max-w-[4rem]'
-                      onChange={(e) => chagneCanvasSetings(e.target.value)}
-                       defaultValue={canvas?.width}
-                    /> */}
-                </div>
+                    //   onChange={(e) => chagneCanvasSetings(e.target.value)}
+                    //    defaultValue={canvas?.width}
+                    />
+                </div>}
                 <div className='flex flex-col'>
                     <label htmlFor="">Height</label>
                     {/* <input type="number" value={canvasHeight} className='w-min text-center max-w-[4rem]' onChange={(e) => chagneCanvasSetings(null, e.target.value)} defaultValue={canvas?.height} /> */}

@@ -9,19 +9,8 @@ interface ColorDropdownProps {
 const ColorDropdown: FunctionComponent<ColorDropdownProps> = ({ onChange, currentColor }) => {
     const [isOpen, setIsOpen] = useState(false);
     const color = currentColor.slice(0, 7);
-    const alpha = parseInt(currentColor.slice(7), 16)||255;
+    const alpha = parseInt(currentColor.slice(7), 16) || 255;
     const dropdownRef = useRef<HTMLDivElement>(null);
-    // const isChangeByCurrentPropChange = useRef()
-
-    // useEffect(() => {
-    //     console.log("currentColor", currentColor);
-
-    //     if (currentColor) {
-    //         isChangeByCurrentPropChange.current = true;
-    //         setColor(currentColor.slice(0, 7))
-    //         setAlpha(parseInt(currentColor.slice(7), 16))
-    //     }
-    // }, [currentColor])
     // Handle clicking outside to close dropdown
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -34,15 +23,6 @@ const ColorDropdown: FunctionComponent<ColorDropdownProps> = ({ onChange, curren
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Update parent component with color changes
-    // useEffect(() => {
-    //     const alphaHex = Math.round(alpha).toString(16).padStart(2, '0');
-    //     const fullColor = `${color}${ Math.round(alpha).toString(16).padStart(2, '0')}`;
-    //     if (fullColor != defaultColor)
-    //         if (onChange && !isChangeByCurrentPropChange.current)
-    //             onChange(fullColor);
-    //     isChangeByCurrentPropChange.current = false
-    // }, [color, alpha, onChange]);
 
     return (
         <div className="relative inline-block" ref={dropdownRef}>
@@ -89,7 +69,7 @@ const ColorDropdown: FunctionComponent<ColorDropdownProps> = ({ onChange, curren
 
                     <div className="space-y-2">
                         <label className="block text-sm font-medium">
-                            Opacity: {Math.round(alpha / 2.55)}%
+                            Opacity: {Math.round(alpha / 2.55).toString()}%
                         </label>
                         <input
                             type="range"

@@ -6,12 +6,11 @@ export abstract class CustomFabric {
         this.obj = obj;
     }
 
-    abstract setWidth(number: string): void;
-    abstract setHeight(number: string): void;
+    abstract setWidth(width: number): void;
+    abstract setHeight(number: number): void;
     abstract setRotaion(number: string): void;
     abstract setOpacity(number: string): void;
-    // abstract setOpacity(number: string): void;
     abstract setBackground(type: string): void;
     abstract setBorder(type: string): void;
-    // abstract setFill(type: string): void;
+    abstract setBorderWidth(width: number): void;
 }

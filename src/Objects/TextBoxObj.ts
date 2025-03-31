@@ -2,19 +2,19 @@ import { Textbox } from "fabric";
 import { CustomFabric } from "./CustomFabric";
 
 export class TextBoxObj extends CustomFabric {
-    rectObj: Textbox;
+    textObj: Textbox;
     constructor(rectObj: Textbox) {
         super(rectObj)
-        this.rectObj = rectObj
+        this.textObj = rectObj
     }
     setBackground(background: string): void {
-        this.rectObj.set("textBackgroundColor", background)
+        this.textObj.set("textBackgroundColor", background)
     }
     setBorder(color: string): void {
-        this.rectObj.set("stroke", color)
+        this.textObj.set("stroke", color)
 
     }
-    setHeight(_: string): void {
+    setHeight(_: number): void {
 
     }
     setOpacity(_: string): void {
@@ -23,7 +23,7 @@ export class TextBoxObj extends CustomFabric {
     setRotaion(_: string): void {
 
     }
-    setWidth(_: string): void {
-
+    setWidth(width: number): void {
+        this.textObj.set("width", width)
     }
 }
