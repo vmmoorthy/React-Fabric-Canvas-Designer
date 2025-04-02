@@ -1,29 +1,19 @@
 import { FabricImage } from "fabric";
+import { bindThisInAllObjFn } from "../helpers/helpers";
 import { CustomFabric } from "./CustomFabric";
 
 export class FabricImageObj extends CustomFabric {
-    imageObj: FabricImage;
+    obj: FabricImage;
     constructor(rectObj: FabricImage) {
         super(rectObj)
-        this.imageObj = rectObj
+        this.propertyListMap = { ...this.propertyListMap, "imageFit": this.setImageFit }
+        this.obj = rectObj
+        bindThisInAllObjFn(this, this.propertyListMap)
     }
-    setBackground(background: string): void {
-        this.imageObj.set("textBackgroundColor", background)
-    }
-    setBorder(color: string): void {
-        this.imageObj.set("stroke", color)
+    setImageFit(_: string) {
 
     }
-    setHeight(_: number): void {
-
-    }
-    setOpacity(_: string): void {
-
-    }
-    setRotaion(_: string): void {
-
-    }
-    setWidth(width: number): void {
-        this.imageObj.set("width", width)
+    public getObjectValues() {
+        return { ...super.getObjectValues(), imageFit: null }
     }
 }

@@ -1,7 +1,7 @@
 import { Ellipse, FabricImage, FabricObject, Rect, Textbox, } from "fabric";
-import { RectObj } from "./Objects/RectObj";
 import { EllipseObj } from "./Objects/EllipseObj";
 import { FabricImageObj } from "./Objects/FabricImageObj";
+import { RectObj } from "./Objects/RectObj";
 import { TextBoxObj } from "./Objects/TextBoxObj";
 
 export class FabricObjectAdapter {

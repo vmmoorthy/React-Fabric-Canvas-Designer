@@ -1,29 +1,35 @@
 import { Ellipse } from "fabric";
+import { bindThisInAllObjFn } from "../helpers/helpers";
 import { CustomFabric } from "./CustomFabric";
 
 export class EllipseObj extends CustomFabric {
-    ellipseObj: Ellipse;
+    obj: Ellipse;
     constructor(rectObj: Ellipse) {
         super(rectObj)
-        this.ellipseObj = rectObj
+        this.propertyListMap = {
+            ...this.propertyListMap,
+            "background": this.setBackground,
+            "borderColor": this.setBorderColor,
+            "borderWidth": this.setBorderWidth,
+        }
+        this.obj = rectObj
+        bindThisInAllObjFn(this, this.propertyListMap)
     }
     setBackground(background: string): void {
-        this.ellipseObj.set("textBackgroundColor", background)
+        this.obj.set("fill", background);
+        //this.obj.setCoords()
     }
-    setBorder(color: string): void {
-        this.ellipseObj.set("stroke", color)
-
+    setBorderColor(color: string): void {
+        this.obj.set("stroke", color)
+        //this.obj.setCoords()
     }
-    setHeight(_: number): void {
-
+    setBorderWidth(width: number): void {
+        if (!width)
+            width = 0
+        this.obj.set("strokeWidth", width)
+        //this.obj.setCoords()
     }
-    setOpacity(_: string): void {
-
-    }
-    setRotaion(_: string): void {
-
-    }
-    setWidth(width: number): void {
-        this.ellipseObj.set("width", width)
+    public getObjectValues() {
+        return { ...super.getObjectValues(), background: this.obj.fill, borderColor: this.obj.stroke, borderWidth: this.obj.strokeWidth }
     }
 }

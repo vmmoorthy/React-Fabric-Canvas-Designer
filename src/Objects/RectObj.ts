@@ -1,32 +1,69 @@
 import { Rect } from "fabric";
+import { bindThisInAllObjFn } from "../helpers/helpers";
 import { CustomFabric } from "./CustomFabric";
 
 export class RectObj extends CustomFabric {
-    rectObj: Rect;
+    obj: Rect;
     constructor(rectObj: Rect) {
         super(rectObj)
-        this.rectObj = rectObj
+        this.obj = rectObj
+        this.propertyListMap = {
+            ...this.propertyListMap,
+            "background": this.setBackground,
+            "borderColor": this.setBorderColor,
+            "borderWidth": this.setBorderWidth,
+            "borderCorner": this.setBorderCorner,
+            "borderSides": this.setBorderSides
+        }
+        bindThisInAllObjFn(this, this.propertyListMap)
     }
     setBackground(background: string): void {
-        this.rectObj.set("fill", background);
+        console.log(this, this.obj)
+        this.obj.set("fill", background);
+        //this.obj.setCoords()
     }
-    setBorder(color: string): void {
-        this.rectObj.set("stroke", color)
-
+    setBorderColor(color: string): void {
+        this.obj.set("stroke", color)
+        //this.obj.setCoords()
     }
     setBorderWidth(width: number): void {
-        this.rectObj.set("strokeWidth", width)
+        if (!width)
+            width = 0
+        this.obj.set("strokeWidth", width)
+        //this.obj.setCoords()
     }
-    setHeight(_height: number): void {
+    setBorderCorner(cornerRadious: number): void {
+        if (!cornerRadious)
+            cornerRadious = 0
+        this.obj.set("rx", cornerRadious)
+        this.obj.set("ry", cornerRadious)
+        // this.obj.set("strokeWidth", width)
+        // //this.obj.setCoords()
+    }
+    setBorderSides(val: boolean): void {
+        // this.obj.set("strokeWidth", width)
+        // //this.obj.setCoords()
+        if (val)
+            this.obj.set("clipPath", new Rect({
+                left: 0,
+                top: 0,
+                width: 2, // Only show stroke on left side
+                height: this.obj.height,
+                absolutePositioned: true
+            }))
+        else
+            this.obj.set("clipPath", null)
+    }
 
-    }
-    setOpacity(_: string): void {
 
-    }
-    setRotaion(_: string): void {
-
-    }
-    setWidth(width: number): void {
-        this.rectObj.set("width", width)
+    public getObjectValues() {
+        return {
+            ...super.getObjectValues(),
+            background: this.obj.fill,
+            borderColor: this.obj.stroke,
+            borderWidth: this.obj.strokeWidth,
+            borderCorner: this.obj.rx,
+            borderSides: this.obj.clipPath ? true : false
+        }
     }
 }
