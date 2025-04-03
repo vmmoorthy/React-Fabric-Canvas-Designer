@@ -2,6 +2,8 @@ import * as fabric from 'fabric';
 import { Canvas, Ellipse, FabricImage, Rect, Textbox } from 'fabric';
 import { QRCodeCanvas } from 'qrcode.react';
 import { forwardRef, FunctionComponent, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import { fonts } from './helpers/fonts.js';
+
 export { default as Properties } from './Properties.js';
 export { Canvas };
 
@@ -20,6 +22,34 @@ interface CanvasComponentProps {
 type toolType = "select" | "img" | "rect" | "elipse" | "text"
 type objPositionType = "left" | "right" | "top" | "bottom" | "horizontally" | "vertically"
 type objMoveType = 1 | 2 | -1 | -2
+
+// const link = document.createElement("link");
+// link.href = "https://fonts.googleapis.com/css2?family=Bangers&family=Bitter:ital,wght@0,100..900;1,100..900&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Dancing+Script:wght@400..700&family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Lobster&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Oswald:wght@200..700&family=Pacifico&family=Patrick+Hand&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Righteous&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rock+Salt&family=Spectral+SC:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap";
+// link.rel = "stylesheet";
+// link.onload = () => {
+//     console.warn("Google Font has loaded!");
+// };
+// document.head.appendChild(link);
+
+async function loadFonts() {
+    try {
+
+        const fontPromises = fonts.map(async ({ name, src, weight, style }) => {
+            // src = await import('./' + src.replace('.ttf', '') + '.ttf', { assert: { type: 'ttf' } })
+            const fontFace = new FontFace(name, `url('fonts/${src}')`, { weight: weight.toString(), style });
+            document.fonts.add(fontFace);
+            return fontFace.load();
+        });
+        await Promise.all(fontPromises);
+        console.log("All fonts loaded successfully");
+    } catch (error) {
+        console.log("fonts Couldn't load", error);
+
+    }
+}
+
+loadFonts().catch(console.error);
+
 
 const CanvasComponent: FunctionComponent<CanvasComponentProps> = ({ initialValue, templateRef, commmunicate, parentCanvasRef, listEmbeddings = [] }) => {
     const [canvas, setCanvas] = useState<Canvas>(() => new Canvas());
@@ -137,7 +167,7 @@ const CanvasComponent: FunctionComponent<CanvasComponentProps> = ({ initialValue
                         width: 0,
                         height: 0,
                         fontSize: 20,
-                        // lockScalingY: true,
+                        lockScalingY: true,
 
 
                     });
@@ -382,6 +412,7 @@ const CanvasComponent: FunctionComponent<CanvasComponentProps> = ({ initialValue
             initcanvas.obj.dispose()
         }
     }, [])
+
     const saveCanvasState = (canvas: Canvas) => {
         console.log(history.length);
         if (history.length >= MAX_HISTORY) {
@@ -804,7 +835,7 @@ const CanvasComponent: FunctionComponent<CanvasComponentProps> = ({ initialValue
                                 imgObj.scaleToHeight(130)
                                 // imgObj.lockRotation=true
                                 // imgObj.toObject = function () {
-                                //     return {
+                                //     return { 
                                 //         id: 'qrcode'
                                 //     };
                                 // };

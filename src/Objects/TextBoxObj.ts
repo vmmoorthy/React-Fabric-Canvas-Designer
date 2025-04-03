@@ -4,8 +4,23 @@ import { CustomFabric } from "./CustomFabric";
 
 export class TextBoxObj extends CustomFabric {
     obj: Textbox;
-    constructor(rectObj: Textbox) {
-        super(rectObj)
+    constructor(textObj: Textbox) {
+        super(textObj)
+        // textObj.set("lockScalingX", true);
+        textObj.set("lockScalingY", true);
+        textObj.set("styles", {});
+        textObj.setControlsVisibility({
+            mt: false, // Middle top
+            mb: false, // Middle bottom
+            ml: true, // Middle left
+            mr: true, // Middle right
+            tl: false, // Top left
+            tr: false, // Top right
+            bl: false, // Bottom left
+            br: false, // Bottom right
+            mtr: true // Rotation control
+        });
+
         this.propertyListMap = {
             ...this.propertyListMap,
             "fontFamily": this.setFontFamily,
@@ -16,7 +31,7 @@ export class TextBoxObj extends CustomFabric {
             "textBackground": this.setTextBackground,
             // "background": this.setBackground,
         }
-        this.obj = rectObj
+        this.obj = textObj
         bindThisInAllObjFn(this, this.propertyListMap)
 
     }

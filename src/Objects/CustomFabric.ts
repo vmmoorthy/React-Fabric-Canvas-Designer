@@ -5,7 +5,7 @@ export class CustomFabric {
     propertyListMap: { [property: string]: any };
     constructor(obj: FabricObject,) {
         this.obj = obj;
-        this.propertyListMap = { "rotaion": this.setRotaion, "opacity": this.setOpacity, "width": this.setWidth, "height": this.setHeight, }
+        this.propertyListMap = { "rotaion": this.setRotaion, "opacity": this.setOpacity, "width": this.setWidth, "height": this.setHeight, "scaleX": this.setScaleX, "scaleY": this.setScaleY, "skewX": this.setSkewX, "skewY": this.setSkewY }
     }
     setWidth(width: number): void {
         if (!width)
@@ -31,7 +31,31 @@ export class CustomFabric {
         this.obj.set("opacity", opacity)
         //this.obj.setCoords()
     };
-    protected getObjectValues(): { width: number; height: number; opacity: number; rotaion: number; } {
-        return { width: this.obj.width, height: this.obj.height, opacity: this.obj.opacity, rotaion: this.obj.angle }
+    setScaleX(scaleX: number): void {
+        if (!scaleX)
+            scaleX = 1
+        this.obj.set("scaleX", scaleX)
+        //this.obj.setCoords()
+    };
+    setScaleY(scaleY: number): void {
+        if (!scaleY)
+            scaleY = 1
+        this.obj.set("scaleY", scaleY)
+        //this.obj.setCoords()
+    };
+    setSkewX(skewX: number): void {
+        if (!skewX)
+            skewX = 1
+        this.obj.set("skewX", skewX)
+        //this.obj.setCoords()
+    };
+    setSkewY(skewY: number): void {
+        if (!skewY)
+            skewY = 1
+        this.obj.set("skewY", skewY)
+        //this.obj.setCoords()
+    };
+    protected getObjectValues(): { skewX: number, skewY: number, scaleX: number, scaleY: number, width: number; height: number; opacity: number; rotaion: number; } {
+        return { skewX: this.obj.skewX, skewY: this.obj.skewY, scaleX: this.obj.scaleX, scaleY: this.obj.scaleY, width: this.obj.width, height: this.obj.height, opacity: this.obj.opacity, rotaion: this.obj.angle }
     }
 }

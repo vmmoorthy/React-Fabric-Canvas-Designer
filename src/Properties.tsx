@@ -316,6 +316,42 @@ const Properties: FC<PropertiesProps> = ({ canvas }) => {
                         className='w-min text-center max-w-[4rem]'
                     />
                 </div>}
+            {propertyValue.hasOwnProperty("scaleX") &&
+                <div className='flex flex-col'>
+                    <label htmlFor="">Zoom X</label>
+                    <input type="number"
+                        value={propertyValue.scaleX}
+                        onChange={e => handlePropertyChange("scaleX", parseInt(e.target.value))}
+                        className='w-min text-center max-w-[4rem]'
+                    />
+                </div>}
+            {propertyValue.hasOwnProperty("scaleY") &&
+                <div className='flex flex-col'>
+                    <label htmlFor="">Zoom Y</label>
+                    <input type="number"
+                        value={propertyValue.scaleX}
+                        onChange={e => handlePropertyChange("scaleY", parseInt(e.target.value))}
+                        className='w-min text-center max-w-[4rem]'
+                    />
+                </div>}
+            {propertyValue.hasOwnProperty("skewX") &&
+                <div className='flex flex-col'>
+                    <label htmlFor="">Zoom X</label>
+                    <input type="number"
+                        value={propertyValue.skewX}
+                        onChange={e => handlePropertyChange("skewX", parseInt(e.target.value))}
+                        className='w-min text-center max-w-[4rem]'
+                    />
+                </div>}
+            {propertyValue.hasOwnProperty("skewY") &&
+                <div className='flex flex-col'>
+                    <label htmlFor="">Zoom Y</label>
+                    <input type="number"
+                        value={propertyValue.skewX}
+                        onChange={e => handlePropertyChange("skewY", parseInt(e.target.value))}
+                        className='w-min text-center max-w-[4rem]'
+                    />
+                </div>}
             {propertyValue.hasOwnProperty("opacity") &&
                 <div className='flex flex-col'>
                     <label htmlFor="">Opacity</label>
@@ -358,19 +394,63 @@ const Properties: FC<PropertiesProps> = ({ canvas }) => {
                         <option value={"justify-right"} >justify-right</option>
                     </select>
                 </div>}
-            {/* {propertyValue.hasOwnProperty("fontFamily") &&
+            {propertyValue.hasOwnProperty("fontFamily") &&
                 <div className='flex flex-col'>
                     <label htmlFor="">Font Family</label>
                     <select value={propertyValue.fontFamily} className=' text-center max-w-[4rem]' onChange={e => handlePropertyChange("fontFamily", (e.target.value))}>
-                        <option value={"left"} >left</option>
-                        <option value={"center"} >center</option>
-                        <option value={"right"} >right</option>
-                        <option value={"justify"} >justify</option>
-                        <option value={"justify-left"} >justify-left</option>
-                        <option value={"justify-center"} >justify-center</option>
-                        <option value={"justify-right"} >justify-right</option>
+                        <option value={"Bangers"} >Bangers</option>
+                        <option value={"Bitter"} >Bitter</option>
+                        <option value={"Chakra Petch"} >Chakra Petch</option>
+                        <option value={"Dancing Script"} >Dancing Script</option>
+                        <option value={"Kanit"} >Kanit</option>
+                        <option value={"Lobster"} >Lobster</option>
+                        <option value={"Montserrat"} >Montserrat</option>
+                        <option value={"Oswald"} >Oswald</option>
+                        <option value={"Pacifico"} >Pacifico</option>
+                        <option value={"Patrick Hand"} >Patrick Hand</option>
+                        <option value={"Prompt"} >Prompt</option>
+                        <option value={"Righteous"} >Righteous</option>
+                        <option value={"Roboto"} >Roboto</option>
+                        <option value={"Roboto Condensed"} >Roboto Condensed</option>
+                        <option value={"Roboto Semi Condensed"} >Roboto Semi Condensed</option>
+                        <option value={"Rock Salt"} >Rock Salt</option>
+                        <option value={"Spectral SC"} >Spectral SC</option>
+
+                        {/* <option value={"Roboto"} >Roboto</option>
+                        <option value={"Chakra_Petch"} >Chakra_Petch</option>
+                        <option value={"Prompt"} >Prompt</option>
+                        <option value={"Kanit"} >Kanit</option>
+                        <option value={"Spectral_SC"} >Spectral_SC</option>
+                        <option value={"Bitter"} >Bitter</option>
+                        <option value={"Roboto_Condensed"} >Roboto_Condensed</option>
+                        <option value={"Bangers"} >Bangers</option>
+                        <option value={"gf_Dancing_Script variant1"} >Dancing_Script</option>
+                        <option value={"Lobster"} >Lobster</option>
+                        <option value={"Oswald"} >Oswald</option>
+                        <option value={"Pacifico"} >Pacifico</option>
+                        <option value={"Patrick_Hand"} >Patrick_Hand</option>
+                        <option value={"Righteous"} >Righteous</option>
+                        <option value={"Rock_Salt"} >Rock_Salt</option>
+                        <option value={"Montserrat"} >Montserrat</option> */}
+
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Roboto  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Chakra_Petch  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Prompt  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Kanit  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Spectral_SC  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Bitter  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Roboto_Condensed  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Bangers  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Dancing_Script  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Lobster  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Oswald  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Pacifico  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Patrick_Hand  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Righteous  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Rock_Salt  */}
+                        {/* c:\Users\VMM\Downloads\Bangers,Bitter,Chakra_Petch,Dancing_Script,Kanit,etc\Montserrat */}
                     </select>
-                </div>} */}
+                </div>}
             {/* {propertyValue.hasOwnProperty("borderSides") &&
                 <div className='flex flex-col'>
                     <label htmlFor="">Rotaion</label>
