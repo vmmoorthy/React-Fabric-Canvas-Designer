@@ -1,5 +1,6 @@
 import * as fabric from 'fabric';
 import { Canvas, Ellipse, FabricImage, Rect, Textbox } from 'fabric';
+import JSZip from "jszip";
 import { QRCodeCanvas } from 'qrcode.react';
 import { forwardRef, FunctionComponent, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
 import { fonts } from './helpers/fonts.js';
@@ -34,21 +35,68 @@ type objMoveType = 1 | 2 | -1 | -2
 async function loadFonts() {
     try {
 
+        const response = await fetch("/fonts.zip"); // Download ZIP file
+        const blob = await response.blob();
+
+        const zip = await JSZip.loadAsync(blob);
+        // const fontPromises = [];
+        // TODO: handle missing fonts 
         const fontPromises = fonts.map(async ({ name, src, weight, style }) => {
             // src = await import('./' + src.replace('.ttf', '') + '.ttf', { assert: { type: 'ttf' } })
-            const fontFace = new FontFace(name, `url('fonts/${src}')`, { weight: weight.toString(), style });
+            const fontBlob = await zip.files[src].async("blob");
+            const fontUrl = URL.createObjectURL(fontBlob);
+            const fontFace = new FontFace(name, `url('${fontUrl}')`, { weight: weight.toString(), style });
             document.fonts.add(fontFace);
             return fontFace.load();
         });
         await Promise.all(fontPromises);
-        console.log("All fonts loaded successfully");
     } catch (error) {
-        console.log("fonts Couldn't load", error);
-
+        console.error(error);
     }
+    // for (const fileName of Object.keys(zip.files)) {
+    //     if (fileName.endsWith(".ttf")) {
+
+    //         const fontBlob = await zip.files[fileName].async("blob");
+    //         const fontUrl = URL.createObjectURL(fontBlob);
+
+    // const fontName = fileName.replace(/fonts\/|.ttf/g, ""); // Extract font name
+    // console.log(fontName);
+    // const fontFace = new FontFace(fontName, `url('${fontUrl}')`);
+
+    // fontPromises.push(
+    //     fontFace.load().then(() => {
+    //         document.fonts.add(fontFace);
+    //         console.log(`Loaded font: ${fontName}`);
+    //     })
+    // );
+    //     }
+    // }
+
+    // await Promise.all(fontPromises);
+    // console.log("All fonts loaded!");
 }
 
 loadFonts().catch(console.error);
+
+
+// async function loadFonts() {
+//     try {
+
+//         const fontPromises = fonts.map(async ({ name, src, weight, style }) => {
+//             // src = await import('./' + src.replace('.ttf', '') + '.ttf', { assert: { type: 'ttf' } })
+//             const fontFace = new FontFace(name, `url('fonts/${src}')`, { weight: weight.toString(), style });
+//             document.fonts.add(fontFace);
+//             return fontFace.load();
+//         });
+//         await Promise.all(fontPromises);
+//         console.log("All fonts loaded successfully");
+//     } catch (error) {
+//         console.log("fonts Couldn't load", error);
+
+//     }
+// }
+
+// loadFonts().catch(console.error);
 
 
 const CanvasComponent: FunctionComponent<CanvasComponentProps> = ({ initialValue, templateRef, commmunicate, parentCanvasRef, listEmbeddings = [] }) => {

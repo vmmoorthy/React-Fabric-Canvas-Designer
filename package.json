@@ -4,14 +4,15 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build":"tsc",
-    "dev":"tsc --watch"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "fabric": "^6.4.3",
+    "jszip": "^3.10.1",
     "qrcode.react": "^4.1.0"
   },
   "devDependencies": {

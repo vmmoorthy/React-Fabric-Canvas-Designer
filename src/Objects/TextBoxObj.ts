@@ -26,6 +26,7 @@ export class TextBoxObj extends CustomFabric {
             "fontFamily": this.setFontFamily,
             "fontSize": this.setFontSize,
             "fontStyle": this.setFontStyle,
+            "fontWeight": this.setFontWeight,
             "textAlign": this.setTextAlign,
             "textFill": this.setTextFill,
             "textBackground": this.setTextBackground,
@@ -38,8 +39,11 @@ export class TextBoxObj extends CustomFabric {
     setFontFamily(font: string): void {
         this.obj.set("fontFamily", font)
     }
-    setFontStyle(_: string): void {
-
+    setFontStyle(style: string): void {
+        this.obj.fontStyle = style
+    }
+    setFontWeight(weight: "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900"): void {
+        this.obj.fontWeight = weight
     }
 
     setFontSize(size: number): void {
@@ -67,6 +71,8 @@ export class TextBoxObj extends CustomFabric {
             ...super.getObjectValues(),
             fontFamily: this.obj.fontFamily,
             fontSize: this.obj.fontSize,
+            fontStyle: this.obj.fontStyle,
+            fontWeight: this.obj.fontWeight,
             textAlign: this.obj.textAlign,
             textFill: this.obj.fill,
             textBackground: this.obj.textBackgroundColor,
