@@ -1,12 +1,12 @@
+import { Canvas, Ellipse, Rect, Textbox, } from "fabric";
 import { action, computed, makeObservable, observable } from "mobx";
-import { CanvasRenderer } from "./FabricCanvas";
 import { FabricObjectAdapter } from "./FabricObjectAdapter";
 
 
 type toolListType = "select" | "rect" | "elipse" | "text"
 
-export class ReactFabric {
-    public UIComponent
+export class ReactFabricStore {
+
     public _;
     /**
      * @availableTools
@@ -64,14 +64,14 @@ export class ReactFabric {
     canvasHeight: number;
     backgroundColor: string;
 
-    constructor({ canvasWidth, canvasHeight, backgroundColor }: { canvasWidth: number, canvasHeight: number, backgroundColor: string }) {
+    constructor({ canvasWidth, canvasHeight, backgroundColor, fabricCanvasInstance }: { fabricCanvasInstance: Canvas, canvasWidth: number, canvasHeight: number, backgroundColor: string }) {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.backgroundColor = backgroundColor
 
         // initialize the fabric Canvas layout
-        const { fabricCanvasInstance, UIComponent } = CanvasRenderer({ backgroundColor, canvasHeight, canvasWidth })
-        this.UIComponent = UIComponent
+        // const { fabricCanvasInstance, UIComponent } = CanvasRenderer({ backgroundColor, canvasHeight, canvasWidth })
+        // this.UIComponent = UIComponent
 
         // initialize the base state
         this.selectedTool = "select"
@@ -85,162 +85,162 @@ export class ReactFabric {
 
 
         // listening events
-        this._.current.on("selection:cleared", this.updateSelectedObjPropertyList)
-        this._.current.on("selection:created", this.updateSelectedObjPropertyList)
-        this._.current.on("selection:updated", this.updateSelectedObjPropertyList)
-        this._.current.on("object:modified", this.updateSelectedObjPropertyList)
+        this._.on("selection:cleared", this.updateSelectedObjPropertyList)
+        this._.on("selection:created", this.updateSelectedObjPropertyList)
+        this._.on("selection:updated", this.updateSelectedObjPropertyList)
+        this._.on("object:modified", this.updateSelectedObjPropertyList)
 
 
 
 
-        // let obj, origX: number, origY: number;
+        let obj, origX: number, origY: number;
 
 
-        // // Handle mouse click to create rectangle
-        // this._.current.on('mouse:down', (options) => {
-        //     if (this.selectedTool === "select") {
-        //         this.cloneObjRef.current = this._.current.getActiveObjects()
-        //         return
-        //     };
+        // Handle mouse click to create rectangle
+        this._.on('mouse:down', (options) => {
+            if (this.selectedTool === "select") {
+                this.cloneObjRef.current = this._.getActiveObjects()
+                return
+            };
 
-        //     this.isDrawing = true
-        //     if (options.e) {
-        //         const pointer = this._.current.getPointer(options.e);
-        //         origX = pointer.x
-        //         origY = pointer.y
-        //         if (this.selectedTool == "rect")
-        //             obj = new Rect({
-        //                 left: origX,
-        //                 top: origY,
-        //                 fill: this.drawColor, // Default fill color
-        //                 stroke: "red",
-        //                 strokeWidth: 1,
-        //                 borderColor: "blue",
-        //                 width: 0,
-        //                 height: 0,
-        //                 selectable: true,
+            this.isDrawing = true
+            if (options.e) {
+                const pointer = this._.getPointer(options.e);
+                origX = pointer.x
+                origY = pointer.y
+                if (this.selectedTool == "rect")
+                    obj = new Rect({
+                        left: origX,
+                        top: origY,
+                        fill: this.drawColor, // Default fill color
+                        stroke: "red",
+                        strokeWidth: 1,
+                        borderColor: "blue",
+                        width: 0,
+                        height: 0,
+                        selectable: true,
 
-        //                 originX: "left",
-        //                 originY: "top",
-        //                 // strokeWidth: 1,
+                        originX: "left",
+                        originY: "top",
+                        // strokeWidth: 1,
 
-        //             });
-        //         else if (this.selectedTool == "elipse")
-        //             obj = new Ellipse({
-        //                 left: origX,
-        //                 top: origY,
-        //                 fill: this.drawColor, // Default fill color
-        //                 stroke: "red",
-        //                 strokeWidth: 1,
-        //                 borderColor: "blue",
-        //                 rx: 0,
-        //                 ry: 0,
-        //                 selectable: true,
+                    });
+                else if (this.selectedTool == "elipse")
+                    obj = new Ellipse({
+                        left: origX,
+                        top: origY,
+                        fill: this.drawColor, // Default fill color
+                        stroke: "red",
+                        strokeWidth: 1,
+                        borderColor: "blue",
+                        rx: 0,
+                        ry: 0,
+                        selectable: true,
 
-        //                 originX: "center",
-        //                 originY: "center",
-        //                 // strokeWidth: 1,
+                        originX: "center",
+                        originY: "center",
+                        // strokeWidth: 1,
 
-        //             });
-        //         else
-        //             obj = new Textbox("", {
-        //                 left: origX,
-        //                 top: origY,
-        //                 fill: this.drawColor, // Default fill color
-        //                 // stroke: "red",
-        //                 // strokeWidth: 1,
-        //                 // borderColor: "blue",
-        //                 selectable: true,
-        //                 originX: "right",
-        //                 originY: "top",
-        //                 // strokeWidth: 1,
-        //                 // cli
-        //                 width: 0,
-        //                 height: 0,
-        //                 fontSize: 20,
-        //                 lockScalingY: true,
-
-
-        //             });
-        //         obj.set("wrap", "char")
-        //         obj.set({ "strokeUniform": true });
-        //         this._.current.add(obj);
-        //         this._.current.setActiveObject(obj);
-
-        //     }
-        //     this._.current.renderAll()
+                    });
+                else
+                    obj = new Textbox("", {
+                        left: origX,
+                        top: origY,
+                        fill: this.drawColor, // Default fill color
+                        // stroke: "red",
+                        // strokeWidth: 1,
+                        // borderColor: "blue",
+                        selectable: true,
+                        originX: "right",
+                        originY: "top",
+                        // strokeWidth: 1,
+                        // cli
+                        width: 0,
+                        height: 0,
+                        fontSize: 20,
+                        lockScalingY: true,
 
 
-        // });
+                    });
+                obj.set("wrap", "char")
+                obj.set({ "strokeUniform": true });
+                this._.add(obj);
+                this._.setActiveObject(obj);
+
+            }
+            this._.renderAll()
 
 
-        // this._.current.on('mouse:move', (options) => {
-
-        //     // console.log(options.e.altKey, options.e.repeat)
-
-        //     if (!this.isDrawing) return;
-        //     // console.log(options);
-        //     const pointer = this._.current.getPointer(options.e);
-        //     let x = pointer.x, y = pointer.y;
-
-        //     if (x > canvasWidth || y > canvasHeight || x < 0 || y < 0) return
-
-        //     const activeObject = this._.current.getActiveObject();
-        //     if (activeObject) {
-        //         if (this.selectedTool == "rect")
-        //             activeObject.set({
-        //                 width: Math.abs(pointer.x - origX),
-        //                 height: Math.abs(pointer.y - origY),
-        //                 left: Math.min(origX, pointer.x),
-        //                 top: Math.min(origY, pointer.y)
-        //             });
-        //         else if (this.selectedTool == "elipse")
-        //             activeObject.set({
-        //                 rx: Math.abs(pointer.x - origX),
-        //                 ry: Math.abs(pointer.y - origY),
-        //                 left: Math.min(origX, pointer.x),
-        //                 top: Math.min(origY, pointer.y)
-        //             });
-        //         else
-        //             activeObject.set({
-        //                 width: Math.abs(pointer.x - origX)
-        //             })
-        //         activeObject.setCoords();
-        //         this._.current.renderAll();
-        //     }
-        // });
-
-        // this._.current.on('mouse:up', (_) => {
-        //     this.isDrawing = false
-        //     if (this.selectedTool == "text") {
-        //         const activeObject = this._.current.getActiveObject();
-        //         if (activeObject)
-        //             (activeObject as Textbox).enterEditing()
-        //     }
+        });
 
 
-        //     this.selectTool("select")
+        this._.on('mouse:move', (options) => {
 
-        //     this._.current.renderAll()
+            // console.log(options.e.altKey, options.e.repeat)
 
-        // });
+            if (!this.isDrawing) return;
+            // console.log(options);
+            const pointer = this._.getPointer(options.e);
+            let x = pointer.x, y = pointer.y;
+
+            if (x > canvasWidth || y > canvasHeight || x < 0 || y < 0) return
+
+            const activeObject = this._.getActiveObject();
+            if (activeObject) {
+                if (this.selectedTool == "rect")
+                    activeObject.set({
+                        width: Math.abs(pointer.x - origX),
+                        height: Math.abs(pointer.y - origY),
+                        left: Math.min(origX, pointer.x),
+                        top: Math.min(origY, pointer.y)
+                    });
+                else if (this.selectedTool == "elipse")
+                    activeObject.set({
+                        rx: Math.abs(pointer.x - origX),
+                        ry: Math.abs(pointer.y - origY),
+                        left: Math.min(origX, pointer.x),
+                        top: Math.min(origY, pointer.y)
+                    });
+                else
+                    activeObject.set({
+                        width: Math.abs(pointer.x - origX)
+                    })
+                activeObject.setCoords();
+                this._.renderAll();
+            }
+        });
+
+        this._.on('mouse:up', (_) => {
+            this.isDrawing = false
+            if (this.selectedTool == "text") {
+                const activeObject = this._.getActiveObject();
+                if (activeObject)
+                    (activeObject as Textbox).enterEditing()
+            }
 
 
-        // this._.current?.on("object:rotating", (e) => {
-        //     if (e.e.shiftKey) {
-        //         const obj = e.target;
-        //         const angle = obj.angle; // Snap the angle to the nearest multiple of 45 
-        //         const snappedAngle = Math.round(angle / 45) * 45;
-        //         if (obj.originX !== "center")
-        //             obj.set('originX', "center");
-        //         if (obj.originY !== "center")
-        //             obj.set('originY', "center");
-        //         console.log(snappedAngle);
-        //         if (obj.angle !== snappedAngle)
-        //             obj.set('angle', snappedAngle);
-        //         this._.current.renderAll();
-        //     }
-        // })
+            this.selectTool("select")
+
+            this._.renderAll()
+
+        });
+
+
+        this._?.on("object:rotating", (e) => {
+            if (e.e.shiftKey) {
+                const obj = e.target;
+                const angle = obj.angle; // Snap the angle to the nearest multiple of 45 
+                const snappedAngle = Math.round(angle / 45) * 45;
+                if (obj.originX !== "center")
+                    obj.set('originX', "center");
+                if (obj.originY !== "center")
+                    obj.set('originY', "center");
+                console.log(snappedAngle);
+                if (obj.angle !== snappedAngle)
+                    obj.set('angle', snappedAngle);
+                this._.renderAll();
+            }
+        })
 
 
 
@@ -265,12 +265,12 @@ export class ReactFabric {
 
         let propertyValueList = {}
 
-        if (!this._.current) {
+        if (!this._) {
             this.availableProperties = propertyValueList
             return
         }
 
-        const objs = this._.current.getActiveObjects()
+        const objs = this._.getActiveObjects()
 
 
         objs.forEach(obj => {

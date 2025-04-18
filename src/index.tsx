@@ -1,7 +1,8 @@
-import { ReactFabric } from "./ReactFabric";
+import useReactFabricCanvas from "./Hooks/useReactFabricCanvas";
 
 
-export default ReactFabric;
+
+export default useReactFabricCanvas;
 
 
 
