@@ -1,8 +1,9 @@
 import { Line } from "fabric";
 import { bindThisInAllObjFn } from "../helpers/helpers";
-import { CustomFabric } from "./CustomFabric";
+import { WrapperFabric } from "./WrapperFabric";
+import { FabricObjectPropertyList } from "./WrapperFabricType";
 
-export class LineObj extends CustomFabric {
+export class LineObj extends WrapperFabric {
     obj: Line;
     constructor(obj: Line) {
         super(obj)
@@ -22,7 +23,7 @@ export class LineObj extends CustomFabric {
         //this.obj.setCoords()
     }
 
-    public getObjectValues() {
-        return { ...super.getObjectValues(), borderColor: this.obj.stroke, borderWidth: this.obj.strokeWidth }
+    public getObjectValues(): FabricObjectPropertyList {
+        return { ...super.getObjectValues(), borderColor: { type: "color", value: this.obj.stroke || "" }, borderWidth: { type: "number", value: this.obj.strokeWidth } }
     }
 }

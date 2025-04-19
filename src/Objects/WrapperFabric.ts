@@ -1,6 +1,8 @@
 import { FabricObject } from "fabric";
+import { FabricObjectPropertyList } from "./WrapperFabricType";
 
-export class CustomFabric {
+
+export class WrapperFabric {
     obj: FabricObject;
     propertyListMap: { [property: string]: any };
     constructor(obj: FabricObject,) {
@@ -55,7 +57,16 @@ export class CustomFabric {
         this.obj.set("skewY", skewY)
         //this.obj.setCoords()
     };
-    protected getObjectValues(): { skewX: number, skewY: number, scaleX: number, scaleY: number, width: number; height: number; opacity: number; rotaion: number; } {
-        return { skewX: this.obj.skewX, skewY: this.obj.skewY, scaleX: this.obj.scaleX, scaleY: this.obj.scaleY, width: this.obj.width, height: this.obj.height, opacity: this.obj.opacity, rotaion: this.obj.angle }
+    protected getObjectValues(): FabricObjectPropertyList {
+        return {
+            skewX: { type: "number", min: 0, max: undefined, value: this.obj.skewX },
+            skewY: { type: "number", min: 0, max: undefined, value: this.obj.skewY },
+            scaleX: { type: "number", min: 0, max: undefined, value: this.obj.scaleX },
+            scaleY: { type: "number", min: 0, max: undefined, value: this.obj.scaleY },
+            width: { type: "number", min: 0, max: undefined, value: this.obj.width },
+            height: { type: "number", min: 0, max: undefined, value: this.obj.height },
+            opacity: { type: "number", min: 0, max: 1, value: this.obj.opacity },
+            rotaion: { type: "number", min: 0, max: 359, value: this.obj.angle }
+        }
     }
 }

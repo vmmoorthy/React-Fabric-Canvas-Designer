@@ -1,8 +1,9 @@
 import { Ellipse } from "fabric";
 import { bindThisInAllObjFn } from "../helpers/helpers";
-import { CustomFabric } from "./CustomFabric";
+import { WrapperFabric } from "./WrapperFabric";
+import { FabricObjectPropertyList } from "./WrapperFabricType";
 
-export class EllipseObj extends CustomFabric {
+export class EllipseObj extends WrapperFabric {
     obj: Ellipse;
     constructor(rectObj: Ellipse) {
         super(rectObj)
@@ -29,7 +30,7 @@ export class EllipseObj extends CustomFabric {
         this.obj.set("strokeWidth", width)
         //this.obj.setCoords()
     }
-    public getObjectValues() {
-        return { ...super.getObjectValues(), background: this.obj.fill, borderColor: this.obj.stroke, borderWidth: this.obj.strokeWidth }
+    public getObjectValues(): FabricObjectPropertyList {
+        return { ...super.getObjectValues(), background: { type: "color", value: this.obj.fill || "" }, borderColor: { type: "color", value: this.obj.stroke || "" }, borderWidth: { type: "number", value: this.obj.strokeWidth } }
     }
 }

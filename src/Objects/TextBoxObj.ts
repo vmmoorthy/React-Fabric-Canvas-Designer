@@ -1,8 +1,9 @@
-import { Textbox } from "fabric";
+import { Textbox, } from "fabric";
 import { bindThisInAllObjFn } from "../helpers/helpers";
-import { CustomFabric } from "./CustomFabric";
+import { WrapperFabric } from "./WrapperFabric";
+import { FabricObjectPropertyList } from "./WrapperFabricType";
 
-export class TextBoxObj extends CustomFabric {
+export class TextBoxObj extends WrapperFabric {
     obj: Textbox;
     constructor(textObj: Textbox) {
         super(textObj)
@@ -66,16 +67,16 @@ export class TextBoxObj extends CustomFabric {
     //     //this.obj.setCoords()
     // }
 
-    public getObjectValues() {
+    public getObjectValues(): FabricObjectPropertyList {
         return {
             ...super.getObjectValues(),
-            fontFamily: this.obj.fontFamily,
-            fontSize: this.obj.fontSize,
-            fontStyle: this.obj.fontStyle,
-            fontWeight: this.obj.fontWeight,
-            textAlign: this.obj.textAlign,
-            textFill: this.obj.fill,
-            textBackground: this.obj.textBackgroundColor,
+            fontFamily: { type: "string", value: this.obj.fontFamily, },
+            fontSize: { type: "number", value: this.obj.fontSize, },
+            fontStyle: { type: "enum", value: this.obj.fontStyle, enum: ["normal", "italic", "oblique"] },
+            fontWeight: { type: "enum", enum: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], value: this.obj.fontWeight, },
+            textAlign: { value: this.obj.textAlign, type: "enum", enum: ["left", "center", "right", "justify", "justify-left", "justify-center", "justify-right"] },
+            textFill: { type: "color", value: this.obj.fill || "", },
+            textBackground: { type: "color", value: this.obj.textBackgroundColor, },
             // background: this.obj.backgroundColor,
         }
     }

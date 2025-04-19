@@ -1,8 +1,9 @@
 import { Rect } from "fabric";
 import { bindThisInAllObjFn } from "../helpers/helpers";
-import { CustomFabric } from "./CustomFabric";
+import { WrapperFabric } from "./WrapperFabric";
+import { FabricObjectPropertyList } from "./WrapperFabricType";
 
-export class RectObj extends CustomFabric {
+export class RectObj extends WrapperFabric {
     obj: Rect;
     constructor(rectObj: Rect) {
         super(rectObj)
@@ -56,14 +57,14 @@ export class RectObj extends CustomFabric {
     }
 
 
-    public getObjectValues() {
+    public getObjectValues(): FabricObjectPropertyList {
         return {
             ...super.getObjectValues(),
-            background: this.obj.fill,
-            borderColor: this.obj.stroke,
-            borderWidth: this.obj.strokeWidth,
-            borderCorner: this.obj.rx,
-            borderSides: this.obj.clipPath ? true : false
+            background: { type: "color", value: this.obj.fill || "", },
+            borderColor: { type: "color", value: this.obj.stroke || "", },
+            borderWidth: { type: "number", value: this.obj.strokeWidth, },
+            borderCorner: { type: "number", value: this.obj.rx, },
+            borderSides: { type: "boolean", value: this.obj.clipPath ? true : false },
         }
     }
 }

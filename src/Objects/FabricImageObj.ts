@@ -1,8 +1,9 @@
 import { FabricImage } from "fabric";
 import { bindThisInAllObjFn } from "../helpers/helpers";
-import { CustomFabric } from "./CustomFabric";
+import { WrapperFabric } from "./WrapperFabric";
+import { FabricObjectPropertyList } from "./WrapperFabricType";
 
-export class FabricImageObj extends CustomFabric {
+export class FabricImageObj extends WrapperFabric {
     obj: FabricImage;
     constructor(rectObj: FabricImage) {
         super(rectObj)
@@ -13,7 +14,10 @@ export class FabricImageObj extends CustomFabric {
     setImageFit(_: string) {
 
     }
-    public getObjectValues() {
-        return { ...super.getObjectValues(), imageFit: null }
+    public getObjectValues(): FabricObjectPropertyList {
+        return {
+            ...super.getObjectValues(),
+            // imageFit: null
+        }
     }
 }

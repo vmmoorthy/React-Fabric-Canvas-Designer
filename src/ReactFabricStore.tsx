@@ -1,14 +1,17 @@
 import { ActiveSelection, Canvas, Ellipse, Rect, Textbox, } from "fabric";
 import { action, computed, makeObservable, observable } from "mobx";
 import { FabricObjectAdapter } from "./FabricObjectAdapter";
+import { FabricObjectPropertyList, FabricObjectPropertyType, FabricObjectPropertyValueType } from "./Objects/WrapperFabricType";
+import InputColor from "./UserFirendlyInput/Color";
 import InputNumber from "./UserFirendlyInput/Number";
+import InputText from "./UserFirendlyInput/Text";
 
 
 type toolListType = "select" | "rect" | "elipse" | "text"
 type objMoveType = 1 | 2 | -1 | -2
 type objPositionType = "left" | "right" | "top" | "bottom" | "horizontally" | "vertically"
 type availablePropertyType = {
-    name: string, inputType: "number" | "text" | "color", value: any, onChange: (value: any) => void,
+    name: string, inputType: "number" | "text" | "color", property: FabricObjectPropertyType, value: FabricObjectPropertyValueType, onChange: (value: any) => void,
     UIComponent: React.ReactNode
 }
 
@@ -31,7 +34,7 @@ export class ReactFabricStore {
     private cloneObjRef: { current: any } = { current: "" };
     private isDrawing = false
     private drawColor = "black"
-    @observable public accessor propertyValueList: { [key: string]: any } = {}
+    @observable public accessor propertyValueList: FabricObjectPropertyList = {}
     @observable public accessor selectedTool: toolListType
     @computed public get availableTools() {
         return {
@@ -153,10 +156,14 @@ export class ReactFabricStore {
             return {
                 name: property,
                 inputType: "number",
-                value: this.propertyValueList[property],
+                property: this.propertyValueList[property],
+                value: this.propertyValueList[property].value,
                 onChange: (value: any) => { this.updatePropertyValue(property, value) },
                 UIComponent: <div>
-                    <InputNumber value={this.propertyValueList[property]} onChange={(value) => this.updatePropertyValue(property, value)} />
+                    {this.propertyValueList[property].type === "string" && <InputText value={String(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "number" && <InputNumber value={Number(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "color" && <InputColor value={String(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {/* {<Chrome />} */}
                     {/* <input type="text" className="input" value={this.propertyValueList[property]} onBlur={(e) => {
                         // if (e.target.value.length !== 0 && !isNaN(Number(e.target.value)))
                         console.log("on blur")
@@ -474,7 +481,7 @@ export class ReactFabricStore {
         })
         // this.availableProperties. = value;
         // this.updateSelectedObjPropertyList() // To update the property from it's source
-        this.propertyValueList = { ...this.propertyValueList, [propertyKey]: value }
+        this.propertyValueList = { ...this.propertyValueList, [propertyKey]: { ...this.propertyValueList[propertyKey], value } }
         console.log("after property list", this.propertyValueList)
         // this.updateAvailableProperties()
         this._.renderAll()
