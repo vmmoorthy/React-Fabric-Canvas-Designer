@@ -1,1 +1,4 @@
 1. implement turn off event listening from fabricCanvas
+2. create image upload tool
+3. custom property for tracking 
+4. remove any from ReactFabric class

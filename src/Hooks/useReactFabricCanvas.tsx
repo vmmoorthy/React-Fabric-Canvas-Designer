@@ -11,10 +11,11 @@ type props = {
 const useReactFabricCanvas = ({ canvasWidth, canvasHeight, backgroundColor }: props) => {
     const canvasEl = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
     const [fabricCanvasInstance, setFabricCanvasInstance] = useState<Canvas>(() => new Canvas());
+
     const reactFabricStore = useMemo(() => {
-        return new ReactFabricStore({ canvasWidth, canvasHeight, backgroundColor, fabricCanvasInstance })
+        return new ReactFabricStore({ fabricCanvasInstance })
     }, [fabricCanvasInstance])
-    // const canvas = <canvas ref={canvasEl} style={{ border: '1px solid black' }} />
+
     useEffect(() => {
         let initcanvas: null | Canvas = null
 
