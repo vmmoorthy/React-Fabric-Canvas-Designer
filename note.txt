@@ -2,4 +2,5 @@
 2. create image upload tool
 3. custom property for tracking 
 4. remove any from ReactFabric class
-5. Dropdown
+5. Dropdown input
+6. 

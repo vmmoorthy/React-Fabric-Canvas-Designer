@@ -12,11 +12,7 @@ const InputColor = ({ value, onChange }: prop) => {
   useEffect(() => {
     setColor(value)
     setIsHidden(true)
-    // const onBodyClick = () => setIsHidden(true)
-    // document.body.addEventListener("click", onBodyClick)
-    // return () => document.body.removeEventListener("click", onBodyClick)
   }, [value])
-  // const stopPropagation = e => e.stopPropagation()
   const setValue = () => {
     onChange(color)
     setIsHidden(true)
@@ -35,12 +31,11 @@ const InputColor = ({ value, onChange }: prop) => {
         }
       }}
       onClick={() => { setIsHidden(false) }} className="relative">
-      <h4 className="flex justify-between items-center">
-        <div className="w-5 h-5" onClick={() => { setValue() }} style={{ backgroundColor: value }}></div>
-        {value}
+      <h4 className="flex justify-evenly items-center p-1 bg-white border border-gray-200 text-gray-900 dark:text-gray-50 cursor-pointer rounded-lg disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900  dark:border-neutral-700">
+        <div className=" h-10 w-14 " onClick={() => { setValue() }} style={{ backgroundColor: value }}></div>
+        {value.toUpperCase()}
       </h4>
       <div className="absolute z-10">
-
         <Chrome color={color}
           popover="auto"
           onBlur={setValue}
