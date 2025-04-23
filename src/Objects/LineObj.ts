@@ -17,13 +17,13 @@ export class LineObj extends WrapperFabric {
         //this.obj.setCoords()
     }
     setBorderWidth(width: number): void {
-        if (!width)
-            width = 0
+        // if (!width)
+        //     width = 0
         this.obj.set("strokeWidth", width)
         //this.obj.setCoords()
     }
 
     public getObjectValues(): FabricObjectPropertyList {
-        return { ...super.getObjectValues(), borderColor: { type: "color", value: this.obj.stroke || "" }, borderWidth: { type: "number", value: this.obj.strokeWidth } }
+        return { ...super.getObjectValues(), borderColor: { type: "color", value: this.obj.stroke || "" }, borderWidth: { type: "number", step: 1, value: this.obj.strokeWidth } }
     }
 }

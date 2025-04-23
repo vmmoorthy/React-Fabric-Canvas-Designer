@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 
 type prop = {
-    value: number | undefined,
+    value: number,
     onChange: (value: number) => void
-    min?: number
+    min: number
+    max: number
     step?: number // increment / decrement
 }
-const InputNumber = ({ min, step, value, onChange }: prop) => {
+const InputRange = ({ min, step, max, value, onChange }: prop) => {
     const [number, setNumber] = useState<number>(value || 0);
     useEffect(() => {
-        if (value === undefined) return
         setNumber(value)
     }, [value])
     useEffect(() => {
-        if (value === undefined) return
         onChange(number)
     }, [number])
 
@@ -37,12 +36,11 @@ const InputNumber = ({ min, step, value, onChange }: prop) => {
             setNumber(newValue);
         }
     };
-    return <div className="py-2 px-3 inline-block bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700">
+    return <div className="py-2 px-3 mx-1 inline-block bg-white border border-gray-200 rounded-lg dark:bg-neutral-900 dark:border-neutral-700">
         <div className="flex items-center gap-x-1.5">
             <button
                 type="button"
                 tabIndex={-1}
-                disabled={!value}
                 className="size-6 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-md border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                 aria-label="Decrease"
                 onClick={handleDecrement}
@@ -52,12 +50,14 @@ const InputNumber = ({ min, step, value, onChange }: prop) => {
                 </svg>
             </button>
             <input
-                className="p-0 w-6 bg-transparent border-0 text-gray-800 text-center focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none dark:text-white"
+                className="p-0 w-full bg-transparent border-0 text-gray-800 text-center focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none dark:text-white"
                 style={{ MozAppearance: 'textfield' }}
-                type="number"
-                disabled={!value}
+                type="range"
                 aria-roledescription="Number field"
                 value={number}
+                min={min}
+                step={step}
+                max={max}
                 onChange={handleChange}
             />
             <button
@@ -74,17 +74,6 @@ const InputNumber = ({ min, step, value, onChange }: prop) => {
             </button>
         </div>
     </div>
-    // return (<input type="text" value={number}
-    //     onBlur={() => onChange(number)}
-    //     onKeyDown={(e) => {
-    //         if (e.key == "Enter") {
-    //             e.currentTarget.blur()
-    //         }
-    //         if (e.key == "Escape") {
-    //             setNumber(value)
-    //         }
-    //     }} onChange={(e) => isValidNumber(e.target.value) && setNumber(Number(e.target.value))} />
-    // );
 }
 
-export default InputNumber;
+export default InputRange;

@@ -62,8 +62,8 @@ export class RectObj extends WrapperFabric {
             ...super.getObjectValues(),
             background: { type: "color", value: this.obj.fill || "", },
             borderColor: { type: "color", value: this.obj.stroke || "", },
-            borderWidth: { type: "number", value: this.obj.strokeWidth, },
-            borderCorner: { type: "number", value: this.obj.rx, },
+            borderWidth: { type: "number", step: 1, value: this.obj.strokeWidth, },
+            borderCorner: { type: "number", step: 1, value: this.obj.rx, },
             borderSides: { type: "boolean", value: this.obj.clipPath ? true : false },
         }
     }

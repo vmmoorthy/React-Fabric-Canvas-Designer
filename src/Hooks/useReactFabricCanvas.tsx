@@ -2,19 +2,23 @@
 import { Canvas } from 'fabric';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFabricStore } from '../ReactFabricStore';
+import { FontInfo } from '../types';
 type props = {
     canvasWidth: number,
     canvasHeight: number,
     backgroundColor: string,
+    fontList: FontInfo[]
 }
 
-const useReactFabricCanvas = ({ canvasWidth, canvasHeight, backgroundColor }: props) => {
+const useReactFabricCanvas = ({ canvasWidth, canvasHeight, backgroundColor, fontList }: props) => {
     const canvasEl = useRef<HTMLCanvasElement>({} as HTMLCanvasElement);
-    const [fabricCanvasInstance, setFabricCanvasInstance] = useState<Canvas>(() => new Canvas());
+    const [fabricCanvasInstance, setFabricCanvasInstance] = useState<Canvas | null>(null);
 
-    const reactFabricStore = useMemo(() => {
-        return new ReactFabricStore({ fabricCanvasInstance })
-    }, [fabricCanvasInstance])
+    const reactFabricStore = useMemo<ReactFabricStore | null>(() => {
+        if (fabricCanvasInstance)
+            return new ReactFabricStore({ fabricCanvasInstance, fontList })
+        return null
+    }, [fabricCanvasInstance, fontList])
 
     useEffect(() => {
         let initcanvas: null | Canvas = null
@@ -31,7 +35,7 @@ const useReactFabricCanvas = ({ canvasWidth, canvasHeight, backgroundColor }: pr
         return () => {
             initcanvas.dispose()
         }
-    }, [])
+    }, [fontList])
 
     return { fabricCanvasInstance, reactFabricStore, UIComponent: <canvas ref={canvasEl} style={{ border: '1px solid black' }} /> }
 

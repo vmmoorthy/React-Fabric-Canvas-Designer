@@ -4,14 +4,17 @@ import { FabricObjectAdapter } from "./FabricObjectAdapter";
 import { FabricObjectPropertyList, FabricObjectPropertyType, FabricObjectPropertyValueType } from "./Objects/WrapperFabricType";
 import InputColor from "./UserFirendlyInput/Color";
 import InputNumber from "./UserFirendlyInput/Number";
-import InputText from "./UserFirendlyInput/Text";
+import InputRange from "./UserFirendlyInput/Range";
+import InputSelect from "./UserFirendlyInput/Select";
+import { FontInfo } from "./types";
+// import InputText from "./UserFirendlyInput/Text";
 
 
 type toolListType = "select" | "rect" | "elipse" | "text"
 type objMoveType = 1 | 2 | -1 | -2
 type objPositionType = "left" | "right" | "top" | "bottom" | "horizontally" | "vertically"
 type availablePropertyType = {
-    name: string, inputType: "number" | "text" | "color", property: FabricObjectPropertyType, value: FabricObjectPropertyValueType, onChange: (value: any) => void,
+    name: string, inputType: FabricObjectPropertyType extends { type: infer V } ? V : never, property: FabricObjectPropertyType, value: FabricObjectPropertyValueType, onChange: (value: any) => void,
     UIComponent: React.ReactNode
 }
 
@@ -30,7 +33,7 @@ export class ReactFabricStore {
      * UIComponent - Default Render UI
      * 
      */
-
+    private fonts: FontInfo[]
     private cloneObjRef: { current: any } = { current: "" };
     private isDrawing = false
     private drawColor = "black"
@@ -152,7 +155,7 @@ export class ReactFabricStore {
     }
 
     @computed public get availableProperties() {
-        return Object.keys(this.propertyValueList).map((property: string): availablePropertyType => {
+        const availablePropertyList = Object.keys(this.propertyValueList).map((property: string): availablePropertyType => {
             return {
                 name: property,
                 inputType: "number",
@@ -160,37 +163,76 @@ export class ReactFabricStore {
                 value: this.propertyValueList[property].value,
                 onChange: (value: any) => { this.updatePropertyValue(property, value) },
                 UIComponent: <div>
-                    {this.propertyValueList[property].type === "string" && <InputText value={String(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
-                    {this.propertyValueList[property].type === "number" && <InputNumber value={Number(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "number" && <InputNumber min={this.propertyValueList[property].min} value={(typeof this.propertyValueList[property].value) === "number" ? this.propertyValueList[property].value : undefined} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "range" && <InputRange max={this.propertyValueList[property].max} step={this.propertyValueList[property].step} min={this.propertyValueList[property].min} value={this.propertyValueList[property].value} onChange={(value) => this.updatePropertyValue(property, value)} />}
                     {this.propertyValueList[property].type === "color" && <InputColor value={String(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
-                    {/* {<Chrome />} */}
-                    {/* <input type="text" className="input" value={this.propertyValueList[property]} onBlur={(e) => {
-                        // if (e.target.value.length !== 0 && !isNaN(Number(e.target.value)))
-                        console.log("on blur")
-                        this.updatePropertyValue(property, (e.target.value))
-                    }} /> */}
+                    {this.propertyValueList[property].type === "enum" && <InputSelect options={this.propertyValueList[property].enum?.map(val => ({ value: val, displayValue: val })) || []} value={{ value: this.propertyValueList[property].enum?.[0] || "", displayValue: this.propertyValueList[property].enum?.[0] || "", }} onChange={(value) => this.updatePropertyValue(property, value.value)} />}
+                    {this.propertyValueList[property].type === "font" && <InputSelect options={this.fonts.map((font => ({ value: font.name, displayValue: font.name })))} value={{ value: this.propertyValueList[property].value, displayValue: this.propertyValueList[property].value, }} onChange={(value) => this.updatePropertyValue(property, value.value)} />}
+
+
                 </div>
-                // UIComponent: <><input type="text" className="input" value={this.propertyValueList[property]} onChange={(e) => this.updatePropertyValue(property, e.target.value)} /></>
             }
         })
-    };
-    // @computed public get availablePropertiesWithUI() {
-    //     return 
-    // };
+        // set canvas Width
+        availablePropertyList.push({
+            inputType: "number", name: "canvasWidth",
+            // TODO : make sure it works
+            onChange: (value: number) => {
+                if (this._.lowerCanvasEl)
+                    this._.setDimensions({ width: value })
+                this._.renderAll()
+            }, property: { type: "number", value: this._.getWidth(), step: 5 }, value: this._.getWidth(), UIComponent: <div>
+                <InputNumber min={100} step={5} value={this._.getWidth()} onChange={(value) => {
+                    if (this._.lowerCanvasEl)
+                        this._.setDimensions({ width: value })
+                    this._.renderAll()
+                }} />
+            </div>
+        })
 
-    constructor({ fabricCanvasInstance }: { fabricCanvasInstance: Canvas }) {
+        // set Canvas Height
+        availablePropertyList.push({
+            inputType: "number", name: "canvasHeight",
+            // TODO : make sure it works
+            onChange: (value: number) => {
+                this._.setDimensions({ height: value })
+                this._.renderAll()
+            }, property: { type: "number", value: this._.getHeight(), step: 5 }, value: this._.getHeight(), UIComponent: <div>
+                <InputNumber min={100} value={this._.getHeight()} onChange={(value) => {
+                    if (this._.lowerCanvasEl)
+                        this._.setDimensions({ height: value })
+                    this._.renderAll()
+                }} />
+            </div>
+        })
+
+        // set Canvas Background
+        availablePropertyList.push({
+            inputType: "color", name: "CanvasBackground", onChange: (value: string) => {
+                this._.set("backgroundColor", value)
+                this._.renderAll()
+            }, property: { type: "color", value: this._.get("backgroundColor") }, value: this._.get("backgroundColor"), UIComponent: <div>
+                <InputColor value={String(this._.get("backgroundColor"))} onChange={(value) => {
+                    this._.set("backgroundColor", value)
+                    this._.renderAll()
+                }} />
+            </div>
+        })
+
+
+
+        return availablePropertyList;
+    }
+
+    constructor({ fabricCanvasInstance, fontList }: { fabricCanvasInstance: Canvas, fontList: FontInfo[] }) {
 
         // initialize the base state
-        this.selectedTool = "rect"
+        this.selectedTool = "select"
 
 
         // base canvas instance
         this._ = fabricCanvasInstance
-
-        // this.availableProperties = []
-
-        // this.propertyValueList
-        // gloablUpdatePropertyValue = this.updatePropertyValue.bind(this)
+        this.fonts = fontList
 
 
         // listening events
@@ -423,6 +465,41 @@ export class ReactFabricStore {
         this.selectedTool = tool
     }
 
+    deleteActiveElement() {
+        this._.getActiveObjects()
+            .forEach((obj) => {
+                this._.remove(obj)
+            })
+        this._.discardActiveObject()
+        this.updateSelectedObjPropertyList()
+        this._.renderAll()
+    }
+
+
+    /**
+     * Extracts only the keys common to all objects, with values from the last object.
+     * @param data Array of value objects.
+     * @returns Object with only common keys and last object's full value.
+     */
+    private extractCommonKeyFullValues(data: FabricObjectPropertyList[]): FabricObjectPropertyList {
+        if (data.length === 0) return {};
+
+        // Step 1: Find common keys
+        const commonKeys = Object.keys(data[0]).filter(key =>
+            data.every(obj => key in obj)
+        );
+
+        // Step 2: Build the result using values from the last object
+        const last = data[data.length - 1];
+        const result: FabricObjectPropertyList = {};
+
+        for (const key of commonKeys) {
+            result[key] = last[key];
+        }
+
+        return result;
+    }
+
     /**
     * this function updates selected object's property list with it's value in availableProperties
     *
@@ -434,56 +511,35 @@ export class ReactFabricStore {
 
         if (!this._) {
             this.propertyValueList = {}
-            // this.availableProperties = []
             return
         }
 
         const objs = this._.getActiveObjects()
+        if (objs.length == 0) {
+            this.propertyValueList = {}
+            return
+        }
 
+        const objOptions = objs.map(v => FabricObjectAdapter.createAdapter(v.type, v).getObjectValues())
+        const finalPropertyList = this.extractCommonKeyFullValues(objOptions)
 
-        objs.forEach(obj => {
-            const customObj = FabricObjectAdapter.createAdapter(obj.type, obj)
-            this.propertyValueList = { ...this.propertyValueList, ...customObj.getObjectValues() }
-        })
-        console.log(this.propertyValueList);
-
-        // this.updateAvailableProperties()
-        // this.availableProperties = Object.keys(this.propertyValueList).map((property: string): availablePropertyType => {
-        //     return {
-        //         name: property,
-        //         inputType: "number",
-        //         value: this.propertyValueList[property],
-        //         onChange: (value: any) => { this.updatePropertyValue.bind(this)(property, value) },
-        //         UIComponent: <input type="text" className="input" value={this.propertyValueList[property]} onChange={(e) => gloablUpdatePropertyValue(property, e.target.value)} />
-        //         // UIComponent: <><input type="text" className="input" value={this.propertyValueList[property]} onChange={(e) => this.updatePropertyValue(property, e.target.value)} /></>
-        //     }
-        // })
-
+        this.propertyValueList = finalPropertyList
     }
 
     @action
     updatePropertyValue = (propertyKey: string, value: any) => {
-        console.warn(this, 'propertyKey', propertyKey, "value", value);
-        // return
-        console.log(this._, this.propertyValueList)
 
         if (!this._) return;
         const selectedObj = this._.getActiveObjects()
-        console.log(selectedObj)
-
 
         selectedObj.forEach(obj => {
             const objAdapter = FabricObjectAdapter.createAdapter(obj.type, obj)
-            console.log(objAdapter.obj)
             objAdapter.propertyListMap[propertyKey](value)
             // obj.set("hasBorders", false);
             obj.setCoords()
         })
-        // this.availableProperties. = value;
-        // this.updateSelectedObjPropertyList() // To update the property from it's source
+
         this.propertyValueList = { ...this.propertyValueList, [propertyKey]: { ...this.propertyValueList[propertyKey], value } }
-        console.log("after property list", this.propertyValueList)
-        // this.updateAvailableProperties()
         this._.renderAll()
     }
 }

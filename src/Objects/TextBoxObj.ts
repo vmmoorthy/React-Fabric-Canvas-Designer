@@ -31,7 +31,7 @@ export class TextBoxObj extends WrapperFabric {
             "textAlign": this.setTextAlign,
             "textFill": this.setTextFill,
             "textBackground": this.setTextBackground,
-            // "background": this.setBackground,
+            "background": this.setBackground,
         }
         this.obj = textObj
         bindThisInAllObjFn(this, this.propertyListMap)
@@ -60,24 +60,23 @@ export class TextBoxObj extends WrapperFabric {
     }
     setTextBackground(color: string): void {
         this.obj.set("textBackgroundColor", color)
-        this.obj.set("backgroundColor", color);
     }
-    // setBackground(background: string): void {
-    //     this.obj.set("backgroundColor", background);
-    //     //this.obj.setCoords()
-    // }
+    setBackground(background: string): void {
+        this.obj.set("backgroundColor", background);
+        //this.obj.setCoords()
+    }
 
     public getObjectValues(): FabricObjectPropertyList {
         return {
             ...super.getObjectValues(),
-            fontFamily: { type: "string", value: this.obj.fontFamily, },
-            fontSize: { type: "number", value: this.obj.fontSize, },
+            fontFamily: { type: "font", value: this.obj.fontFamily, },
+            fontSize: { type: "number", step: 1, value: this.obj.fontSize, },
             fontStyle: { type: "enum", value: this.obj.fontStyle, enum: ["normal", "italic", "oblique"] },
-            fontWeight: { type: "enum", enum: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], value: this.obj.fontWeight, },
+            fontWeight: { type: "enum", enum: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], value: String(this.obj.fontWeight), },
             textAlign: { value: this.obj.textAlign, type: "enum", enum: ["left", "center", "right", "justify", "justify-left", "justify-center", "justify-right"] },
             textFill: { type: "color", value: this.obj.fill || "", },
             textBackground: { type: "color", value: this.obj.textBackgroundColor, },
-            // background: this.obj.backgroundColor,
+            background: { type: "color", value: this.obj.backgroundColor, },
         }
     }
 }
