@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 import useGoogleFontsLoader from "./Hooks/useGoogleFontsLoader";
 import useReactFabricCanvas from "./Hooks/useReactFabricCanvas";
 import './index.css';
-import { FontInfo } from "./types";
+import { FontInfo } from "./types/types";
 
 
 

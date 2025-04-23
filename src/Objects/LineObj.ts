@@ -1,7 +1,7 @@
 import { Line } from "fabric";
 import { bindThisInAllObjFn } from "../helpers/helpers";
+import { FabricObjectPropertyList } from "../types/WrapperFabricType";
 import { WrapperFabric } from "./WrapperFabric";
-import { FabricObjectPropertyList } from "./WrapperFabricType";
 
 export class LineObj extends WrapperFabric {
     obj: Line;

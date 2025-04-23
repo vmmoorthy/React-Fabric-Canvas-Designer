@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FontInfo } from "../types";
+import { FontInfo } from "../types/types";
 
 
 export default function useGoogleFontsLoader(cssUrl: string) {

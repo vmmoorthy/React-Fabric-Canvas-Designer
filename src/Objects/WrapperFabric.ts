@@ -1,5 +1,5 @@
 import { FabricObject } from "fabric";
-import { FabricObjectPropertyList } from "./WrapperFabricType";
+import { FabricObjectPropertyList } from "../types/WrapperFabricType";
 
 
 export class WrapperFabric {
@@ -27,6 +27,10 @@ export class WrapperFabric {
     setRotaion(angle: number): void {
         // if (!angle)
         //     angle = 0
+        if (this.obj.originX !== "center")
+            this.obj.set('originX', "center");
+        if (this.obj.originY !== "center")
+            this.obj.set('originY', "center");
         this.obj.set("angle", angle)
     };
     setOpacity(opacity: number): void {

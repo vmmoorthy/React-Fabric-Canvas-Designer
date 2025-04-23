@@ -1,13 +1,12 @@
 import { ActiveSelection, Canvas, Ellipse, Rect, Textbox, } from "fabric";
 import { action, computed, makeObservable, observable } from "mobx";
 import { FabricObjectAdapter } from "./FabricObjectAdapter";
-import { FabricObjectPropertyList, FabricObjectPropertyType, FabricObjectPropertyValueType } from "./Objects/WrapperFabricType";
+import { FontInfo } from "./types/types";
+import { FabricObjectPropertyList, FabricObjectPropertyType, FabricObjectPropertyValueType } from "./types/WrapperFabricType";
 import InputColor from "./UserFirendlyInput/Color";
 import InputNumber from "./UserFirendlyInput/Number";
 import InputRange from "./UserFirendlyInput/Range";
 import InputSelect from "./UserFirendlyInput/Select";
-import { FontInfo } from "./types";
-// import InputText from "./UserFirendlyInput/Text";
 
 
 type toolListType = "select" | "rect" | "elipse" | "text"
@@ -17,28 +16,34 @@ type availablePropertyType = {
     name: string, inputType: FabricObjectPropertyType extends { type: infer V } ? V : never, property: FabricObjectPropertyType, value: FabricObjectPropertyValueType, onChange: (value: any) => void,
     UIComponent: React.ReactNode
 }
-
-// let gloablUpdatePropertyValue: (property: string, value: any) => void;
 export class ReactFabricStore {
 
-    /** Provides the FabricCanvas instance for better control */
-    public _;
-    /**
-     * @availableTools
-     * This is a list that contains object consist of below property
-     * @property 
-     * name - name of the tool
-     * currentValue - Current value of the tool (calculated based on selected elements)
-     * setValue - function to set the value of the tool
-     * UIComponent - Default Render UI
-     * 
-     */
+
     private fonts: FontInfo[]
     private cloneObjRef: { current: any } = { current: "" };
     private isDrawing = false
     private drawColor = "black"
+
+    /** @type Canvas
+     *  Provides the FabricCanvas instance for better control */
+    public _: Canvas;
+
+    /**
+     * List of property values for the currently selected object(s)
+     */
     @observable public accessor propertyValueList: FabricObjectPropertyList = {}
+    /**
+     * Currently selected drawing tool
+     */
     @observable public accessor selectedTool: toolListType
+
+    /**
+     * List of available tools and properties that can be accessed
+     * Contains object arrays with:
+     * - name: Name of the tool
+     * - action: Function to invoke 
+     * - UIComponent: Default UI component
+     */
     @computed public get availableTools() {
         return {
             alignmentTools: [
@@ -117,6 +122,13 @@ export class ReactFabricStore {
                         </svg>
                     </button>
                 },
+                {
+                    action: () => this.deleteActiveElement(), name: "Delete", UIComponent: <button title='Delete selected object' onClick={() => this.deleteActiveElement()}>
+                        <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.7923 4.16667H16.1465L15.1048 3.125H9.89648L8.85482 4.16667H5.20898V6.25H19.7923M6.25065 19.7917C6.25065 20.3442 6.47014 20.8741 6.86085 21.2648C7.25155 21.6555 7.78145 21.875 8.33398 21.875H16.6673C17.2199 21.875 17.7498 21.6555 18.1405 21.2648C18.5312 20.8741 18.7507 20.3442 18.7507 19.7917V7.29167H6.25065V19.7917Z" fill="black" />
+                        </svg>
+                    </button>
+                },
             ],
             creationTools: [
                 {
@@ -153,7 +165,16 @@ export class ReactFabricStore {
             ]
         }
     }
-
+    /**
+         * List of available properties that can be modified for selected objects
+         * Contains objects with:
+         * - name: Property name
+         * - inputType: Type of input control
+         * - property: Property configuration
+         * - value: Current value
+         * - onChange: Handler for value changes
+         * - UIComponent: Default UI component
+         */
     @computed public get availableProperties() {
         const availablePropertyList = Object.keys(this.propertyValueList).map((property: string): availablePropertyType => {
             return {
@@ -288,8 +309,8 @@ export class ReactFabricStore {
                         ry: 0,
                         selectable: true,
 
-                        originX: "center",
-                        originY: "center",
+                        originX: "left",
+                        originY: "top",
                         // strokeWidth: 1,
 
                     });
@@ -456,16 +477,18 @@ export class ReactFabricStore {
     }
 
     /**
-     * This function is used to select the tool
-     * @param tool - @type toolListType tool name 
-     * 
-     */
+    * Selects the active drawing tool
+    * @param tool - Tool to select (select, rect, elipse, text)
+    */
     @action
     selectTool(tool: toolListType) {
         this.selectedTool = tool
     }
-
-    deleteActiveElement() {
+    /**
+     * Deletes the currently selected element(s) from the canvas
+     * can be used with delete button
+     */
+    private deleteActiveElement() {
         this._.getActiveObjects()
             .forEach((obj) => {
                 this._.remove(obj)
@@ -501,11 +524,11 @@ export class ReactFabricStore {
     }
 
     /**
-    * this function updates selected object's property list with it's value in availableProperties
-    *
-    */
+     * Updates the property list
+     * method invoked when selected objects change using event listener
+     */
     @action
-    updateSelectedObjPropertyList() {
+    private updateSelectedObjPropertyList() {
 
         this.propertyValueList = {}
 
@@ -525,7 +548,11 @@ export class ReactFabricStore {
 
         this.propertyValueList = finalPropertyList
     }
-
+    /**
+         * Updates a property value for the selected object(s)
+         * @param propertyKey - Name of the property to update
+         * @param value - New value to set
+         */
     @action
     updatePropertyValue = (propertyKey: string, value: any) => {
 
@@ -541,6 +568,22 @@ export class ReactFabricStore {
 
         this.propertyValueList = { ...this.propertyValueList, [propertyKey]: { ...this.propertyValueList[propertyKey], value } }
         this._.renderAll()
+    }
+    /**
+     * Exports the canvas state as JSON
+     * @returns JSON string representation of the canvas
+     */
+    exportJSON(): string {
+        return this._.toJSON()
+    }
+    /**
+     * Imports a canvas state from JSON
+     * @param json - JSON string to import
+     */
+    importJSON(json: string) {
+        return this._.loadFromJSON(json, () => {
+            this._.renderAll()
+        })
     }
 }
 

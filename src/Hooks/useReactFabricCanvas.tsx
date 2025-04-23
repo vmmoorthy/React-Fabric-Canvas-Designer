@@ -2,7 +2,7 @@
 import { Canvas } from 'fabric';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFabricStore } from '../ReactFabricStore';
-import { FontInfo } from '../types';
+import { FontInfo } from '../types/types';
 type props = {
     canvasWidth: number,
     canvasHeight: number,
