@@ -1,4 +1,4 @@
-# React Fabric JS Sketch Wrapper
+# React Fabric Canvas Designer
 
 A React-based wrapper for Fabric.js to create interactive and customizable canvas-based designs. This library provides tools for drawing, editing, and managing objects on a canvas with React-friendly APIs.
 
@@ -16,7 +16,7 @@ A React-based wrapper for Fabric.js to create interactive and customizable canva
 Install the package via npm:
 
 ```bash
-npm install react-fabric-js-sketch-wrapper
+npm install react-fabric-canvas-designer
 ```
 
 ## Usage
@@ -24,32 +24,61 @@ npm install react-fabric-js-sketch-wrapper
 ### Basic Example
 
 ```tsx
-import React from 'react';
-import { useReactFabricCanvas } from 'react-fabric-js-sketch-wrapper';
+import { observer, useGoogleFontsLoader, useReactFabricCanvas } from 'react-fabric-canvas-designer';
 
-const App = () => {
-  const { UIComponent, reactFabricStore } = useReactFabricCanvas({
-    canvasWidth: 800,
-    canvasHeight: 600,
-    backgroundColor: '#ffffff',
-    fontList: [
-      { name: 'Arial', weights: [400, 700], styles: ['normal', 'italic'] },
-    ],
-  });
+const App = observer(() => {
+  const { fonts, loading } = useGoogleFontsLoader("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Fredoka:wght@300..700&family=Inconsolata:wght@200..900&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Pacifico&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap")
+  const { UIComponent, reactFabricStore } = useReactFabricCanvas({ backgroundColor: "white", canvasHeight: 500, canvasWidth: 1000, fontList: fonts })
+  if (loading || !reactFabricStore)
+    return <h1>Loading...</h1>
+  return <div className="grid grid-cols-12 grid-rows-12 gap-2 bg-gray-400 h-screen w-full">
 
-  return (
-    <div>
-      <h1>Fabric Canvas</h1>
-      {UIComponent}
-      <button onClick={() => console.log(reactFabricStore?.exportJSON())}>
-        Export JSON
-      </button>
+    <div className="row-span-7 col-start-1 row-start-3">
+      <div className='grid grid-cols-2 justify-items-center '>
+        {reactFabricStore.availableTools.positionTools.map((tool, i) => {
+          return <span key={i}>
+            {tool.UIComponent}
+          </span>
+        })}
+      </div>
+      <div className='grid grid-cols-2 mt-5  justify-items-center '>
+        {reactFabricStore.availableTools.alignmentTools.map((tool, i) => {
+          return <span key={i}>
+            {tool.UIComponent}
+          </span>
+        })}
+      </div>
     </div>
-  );
-};
 
-export default App;
+    <div className="overflow-auto justify-self-center self-center col-span-9 row-span-9 col-start-2 row-start-2">
+      {UIComponent}
+    </div>
+
+    <div className="col-span-2 row-span-12 col-start-11 row-start-1 overflow-y-scroll">
+      {reactFabricStore.availableProperties.map((property, i) => {
+        return <div key={i} className='justify-self-center'>
+          <label className='text-xl font-semibold'>{property.name}</label>
+          {property.UIComponent}
+        </div>
+      })}
+    </div>
+
+    <div className="col-span-7 col-start-3 row-start-11 flex justify-around">
+      {reactFabricStore.availableTools.creationTools.map((tool, i) => {
+        return <span key={i}>
+          {tool.UIComponent}
+        </span>
+      })}
+    </div>
+  </div>
+
+})
+
+
+export default App
 ```
+
+Note: Component should be wrapped using ```observer```, otherwise the value might not update as expected
 
 ### Google Fonts Integration
 
@@ -57,7 +86,7 @@ Use the `useGoogleFontsLoader` hook to dynamically load Google Fonts:
 
 ```tsx
 import React from 'react';
-import { useGoogleFontsLoader } from 'react-fabric-js-sketch-wrapper';
+import { useGoogleFontsLoader } from 'react-fabric-canvas-designer';
 
 const App = () => {
   const { fonts, loading } = useGoogleFontsLoader(
@@ -134,6 +163,15 @@ The library provides prebuilt React components for user-friendly input controls:
 - `npm run dev`: Start the development server with live reloading.
 - `npm run build:css`: Build Tailwind CSS.
 - `npm run dev:css`: Watch and build Tailwind CSS.
+- `npm test`: To test the library.
+
+### Testing
+
+This package uses Jest and React Testing Library for unit testing. To run tests:
+
+```bash
+npm run test
+```
 
 ### Folder Structure
 
@@ -149,7 +187,7 @@ src/
 
 ## License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License.
 
 ## Contributing
 
@@ -157,4 +195,4 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## Author
 
-Developed by [Your Name/Organization].
+Developed by VMMOORTHY.

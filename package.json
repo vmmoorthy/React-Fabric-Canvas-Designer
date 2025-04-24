@@ -1,7 +1,7 @@
 {
-  "name": "react-fabric-js-sketch-wrapper",
+  "name": "react-fabric-canvas-designer",
   "version": "1.0.0",
-  "description": "",
+  "description": "A React-based wrapper for Fabric.js to create interactive and customizable canvas-based designs. This library provides tools for drawing, editing, and managing objects on a canvas with React-friendly APIs.",
   "main": "dist/index.js",
   "scripts": {
     "build": "npm run build:css && tsc",
@@ -11,9 +11,35 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vmmoorthy/React-Fabric-Canvas-Designer.git"
+  },
+  "readme": "https://github.com/vmmoorthy/React-Fabric-Canvas-Designer/blob/main/readme.md",
+  "keywords": [
+    "react",
+    "fabric",
+    "fabricjs",
+    "canvas",
+    "react-canvas",
+    "canvas-designer",
+    "react-fabric",
+    "drawing-tools",
+    "vector-editor",
+    "canvas-editor",
+    "graphic-editor",
+    "fabric-wrapper",
+    "react-component",
+    "design-tool",
+    "google-fonts",
+    "customizable-canvas",
+    "fabric-canvas",
+    "json-export",
+    "json-import",
+    "object-manipulation"
+  ],
+  "author": "VMMOORTHY <vmmoorthy25@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "@uiw/react-color-chrome": "^2.5.0",
     "fabric": "^6.4.3",

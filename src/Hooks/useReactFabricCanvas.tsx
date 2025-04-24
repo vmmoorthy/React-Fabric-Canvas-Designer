@@ -24,6 +24,8 @@ const useReactFabricCanvas = ({ canvasWidth, canvasHeight, backgroundColor, font
         let initcanvas: null | Canvas = null
 
         if (!canvasEl.current) return;
+        canvasEl.current.width = canvasWidth;
+        canvasEl.current.height = canvasHeight;
         initcanvas = new Canvas(canvasEl.current, {
             canvasWidth,
             canvasHeight,
@@ -37,7 +39,7 @@ const useReactFabricCanvas = ({ canvasWidth, canvasHeight, backgroundColor, font
         }
     }, [fontList])
 
-    return { fabricCanvasInstance, reactFabricStore, UIComponent: <canvas ref={canvasEl} style={{ border: '1px solid black' }} /> }
+    return { fabricCanvasInstance, reactFabricStore, UIComponent: <canvas ref={canvasEl} width={canvasWidth} height={canvasHeight} /> }
 
 }
 

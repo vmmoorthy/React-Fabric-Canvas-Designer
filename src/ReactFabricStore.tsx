@@ -176,24 +176,8 @@ export class ReactFabricStore {
          * - UIComponent: Default UI component
          */
     @computed public get availableProperties() {
-        const availablePropertyList = Object.keys(this.propertyValueList).map((property: string): availablePropertyType => {
-            return {
-                name: property,
-                inputType: "number",
-                property: this.propertyValueList[property],
-                value: this.propertyValueList[property].value,
-                onChange: (value: any) => { this.updatePropertyValue(property, value) },
-                UIComponent: <div>
-                    {this.propertyValueList[property].type === "number" && <InputNumber min={this.propertyValueList[property].min} value={(typeof this.propertyValueList[property].value) === "number" ? this.propertyValueList[property].value : undefined} onChange={(value) => this.updatePropertyValue(property, value)} />}
-                    {this.propertyValueList[property].type === "range" && <InputRange max={this.propertyValueList[property].max} step={this.propertyValueList[property].step} min={this.propertyValueList[property].min} value={this.propertyValueList[property].value} onChange={(value) => this.updatePropertyValue(property, value)} />}
-                    {this.propertyValueList[property].type === "color" && <InputColor value={String(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
-                    {this.propertyValueList[property].type === "enum" && <InputSelect options={this.propertyValueList[property].enum?.map(val => ({ value: val, displayValue: val })) || []} value={{ value: this.propertyValueList[property].enum?.[0] || "", displayValue: this.propertyValueList[property].enum?.[0] || "", }} onChange={(value) => this.updatePropertyValue(property, value.value)} />}
-                    {this.propertyValueList[property].type === "font" && <InputSelect options={this.fonts.map((font => ({ value: font.name, displayValue: font.name })))} value={{ value: this.propertyValueList[property].value, displayValue: this.propertyValueList[property].value, }} onChange={(value) => this.updatePropertyValue(property, value.value)} />}
+        const availablePropertyList = [];
 
-
-                </div>
-            }
-        })
         // set canvas Width
         availablePropertyList.push({
             inputType: "number", name: "canvasWidth",
@@ -219,7 +203,7 @@ export class ReactFabricStore {
                 this._.setDimensions({ height: value })
                 this._.renderAll()
             }, property: { type: "number", value: this._.getHeight(), step: 5 }, value: this._.getHeight(), UIComponent: <div>
-                <InputNumber min={100} value={this._.getHeight()} onChange={(value) => {
+                <InputNumber min={100} step={5} value={this._.getHeight()} onChange={(value) => {
                     if (this._.lowerCanvasEl)
                         this._.setDimensions({ height: value })
                     this._.renderAll()
@@ -239,6 +223,24 @@ export class ReactFabricStore {
                 }} />
             </div>
         })
+
+        availablePropertyList.push(...Object.keys(this.propertyValueList).map((property: string): availablePropertyType => {
+            return {
+                name: property,
+                inputType: "number",
+                property: this.propertyValueList[property],
+                value: this.propertyValueList[property].value,
+                onChange: (value: any) => { this.updatePropertyValue(property, value) },
+                UIComponent: <div>
+                    {this.propertyValueList[property].type === "number" && <InputNumber min={this.propertyValueList[property].min} value={(typeof this.propertyValueList[property].value) === "number" ? this.propertyValueList[property].value : undefined} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "range" && <InputRange max={this.propertyValueList[property].max} step={this.propertyValueList[property].step} min={this.propertyValueList[property].min} value={this.propertyValueList[property].value} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "color" && <InputColor value={String(this.propertyValueList[property].value)} onChange={(value) => this.updatePropertyValue(property, value)} />}
+                    {this.propertyValueList[property].type === "enum" && <InputSelect options={this.propertyValueList[property].enum?.map(val => ({ value: val, displayValue: val })) || []} value={{ value: this.propertyValueList[property].enum?.[0] || "", displayValue: this.propertyValueList[property].enum?.[0] || "", }} onChange={(value) => this.updatePropertyValue(property, value.value)} />}
+                    {this.propertyValueList[property].type === "font" && <InputSelect options={this.fonts.map((font => ({ value: font.name, displayValue: font.name })))} value={{ value: this.propertyValueList[property].value, displayValue: this.propertyValueList[property].value, }} onChange={(value) => this.updatePropertyValue(property, value.value)} />}
+                </div>
+            }
+        }))
+
 
 
 
