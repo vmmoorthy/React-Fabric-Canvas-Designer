@@ -19,7 +19,6 @@ export class RectObj extends WrapperFabric {
         bindThisInAllObjFn(this, this.propertyListMap)
     }
     setBackground(background: string): void {
-        console.log(this, this.obj)
         this.obj.set("fill", background);
         //this.obj.setCoords()
     }
